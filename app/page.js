@@ -236,7 +236,8 @@ const addTestPlayer = () => {
 
   const qrRef = useRef(null);
 
-const scanTargetRef = useRef(null);
+const [scanTarget, setScanTarget] = useState(null);
+
 
 
 
@@ -248,7 +249,7 @@ const [activePlayer, setActivePlayer] = useState(null);
 
 const [showScanner, setShowScanner] = useState(false);
 useEffect(() => {
-  if (!showScanner) return;
+  if (!showScanner || !scanTarget) return;
   if (!scanTargetRef.current) return;
 
   const startScan = async () => {
@@ -261,7 +262,7 @@ useEffect(() => {
         async (decodedText) => {
           console.log("✅ QR TERBACA:", decodedText);
 
-          const target = scanTargetRef.current;
+          const target = scanTarget;
           if (!target) return;
 
           await qrRef.current.stop();
@@ -293,7 +294,7 @@ useEffect(() => {
             ],
           }));
 
-          scanTargetRef.current = null;
+          setScanTarget(null);
           setShowScanner(false);
         }
       );
@@ -305,7 +306,7 @@ useEffect(() => {
   startScan();
 
   
-}, [showScanner]);
+}, [showScanner,scanTarget]);
 
 
 
@@ -807,12 +808,14 @@ function TeamColumn({ title, players = [],teamKey, color, isWinner, onSelect,set
 
 
     onClick={() => {
-  scanTargetRef.current = {
-    teamKey,
-    slotIndex: players.length + i,
-  };
-  setShowScanner(true);
+  setScanTarget({
+  teamKey,
+  slotIndex: players.length + i,
+});
+setShowScanner(true);
+
 }}
+
 
 
 
