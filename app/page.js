@@ -1,9 +1,8 @@
 "use client";
+console.log("🔥 PAGE.JS TERBARU AKTIF 🔥");
 import { Html5Qrcode } from "html5-qrcode";
-
-
-
 import { useEffect, useState, useRef } from "react";
+
   const SLOT_ORDER = ["A", "B", "C", "D"];
  const SLOT_COLORS = {
   A: {
@@ -236,7 +235,7 @@ const addTestPlayer = () => {
 
 
   const qrRef = useRef(null);
-const isScan = useRef(false);
+
 const scanTargetRef = useRef(null);
 
 
@@ -250,77 +249,64 @@ const [activePlayer, setActivePlayer] = useState(null);
 const [showScanner, setShowScanner] = useState(false);
 useEffect(() => {
   if (!showScanner) return;
-  if (isScan.current) return;
+  if (!scanTargetRef.current) return;
 
-  const runScan = async () => {
+  const startScan = async () => {
     try {
-      isScan.current = true;
       qrRef.current = new Html5Qrcode("qr-reader");
 
       await qrRef.current.start(
         { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: (w, h) => {
-            const size = Math.min(w, h) * 0.7;
-            return { width: size, height: size };
-          },
-        },
-        async (rawPlayerId) => {
-  // STOP SCANNER DI AWAL
-  await qrRef.current.stop();
-  await qrRef.current.clear();
-  qrRef.current = null;
-  isScan.current = false;
+        { fps: 10, qrbox: 250 },
+        async (decodedText) => {
+          console.log("✅ QR TERBACA:", decodedText);
 
-  console.log("✅ CALLBACK MASUK");
-  console.log("🆔 raw:", rawPlayerId);
+          const target = scanTargetRef.current;
+          if (!target) return;
 
-  const target = scanTargetRef.current;
-  console.log("🎯 target:", target);
+          await qrRef.current.stop();
+          await qrRef.current.clear();
+          qrRef.current = null;
 
-  if (!target) {
-    console.error("❌ TARGET NULL");
-    return;
-  }
+          const playerId = decodedText.trim();
+          const ref = doc(db, "players", playerId);
+          const snap = await getDoc(ref);
 
-  const playerId = rawPlayerId.trim();
-  const ref = doc(db, "players", playerId);
-  const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            alert("Player tidak ditemukan");
+            return;
+          }
 
-  console.log("📦 exists:", snap.exists());
+          const data = snap.data();
 
-  if (!snap.exists()) return;
+          setCourt(prev => ({
+            ...prev,
+            [target.teamKey]: [
+              ...prev[target.teamKey],
+              {
+                id: playerId,
+                name: data.name,
+                isVIP: data.isVIP || false,
+                photoUrl: data.photourl || "",
+                slot: SLOT_ORDER[target.slotIndex],
+              },
+            ],
+          }));
 
-  const data = snap.data();
-
-  setCourt(prev => ({
-    ...prev,
-    [target.teamKey]: [
-      ...prev[target.teamKey],
-      {
-        id: playerId,
-        name: data.name,
-        isVIP: data.isVIP || false,
-        photoUrl: data.photoUrl || "",
-        slot: SLOT_ORDER[target.slotIndex],
-      },
-    ],
-  }));
-
-  scanTargetRef.current = null;
-  setShowScanner(false);
-}
-
+          scanTargetRef.current = null;
+          setShowScanner(false);
+        }
       );
-    } catch (e) {
-      console.error(e);
-      isScan.current = false;
+    } catch (err) {
+      console.error("❌ SCAN ERROR:", err);
     }
   };
 
-  runScan();
+  startScan();
+
+  
 }, [showScanner]);
+
 
 
 
@@ -653,29 +639,22 @@ onClick={() => {
       Keluarkan pemain
     </button>
 
-    <button 
-    
-    onTouchStart={(e) => {
-  e.currentTarget.style.transform = "scale(0.97)";
-}}
-onTouchEnd={(e) => {
-  e.currentTarget.style.transform = "scale(1)";
-}}
+    <button
+  onClick={async () => {
+    if (qrRef.current) {
+      await qrRef.current.stop().catch(() => {});
+      await qrRef.current.clear().catch(() => {});
+      qrRef.current = null;
+    }
 
-    onClick={() => setActivePlayer(null)}
-      style={{
-    height: "48px",
-    borderRadius: "12px",
-    border: "1px solid #333",
-    background: "#0B0B0B",
-    color: "#888",
-    fontSize: "14px",
-    cursor: "pointer",
+    scanTargetRef.current = null;
+   
+    setShowScanner(false);
   }}
-      
-      >
-      Batal
-    </button>
+>
+  Batal
+</button>
+
   </div>
 )}
 
@@ -739,7 +718,8 @@ onTouchEnd={(e) => {
     <button
       onClick={() => {
         setShowScanner(false);
-        setScanTarget(null);
+        scanTargetRef.current = null;
+
       }}
       style={{ marginTop: 12 }}
     >
