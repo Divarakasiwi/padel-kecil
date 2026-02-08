@@ -252,10 +252,9 @@ function Header({ now,mounted }) {
 
 function CourtCard({ title, court, setCourt, initialCourt }) {
   const [allPlayers, setAllPlayers] = useState([]);
+  const addTestPlayer = () => {
 
-const addTestPlayer = () => {
   if (court.team1.length >= 2) return;
-
   const player = {
     id: `test_${Date.now()}`,
     name: "Willy (TEST)",
@@ -409,6 +408,10 @@ const winner =
       : null
     : null;
 
+const openPlayerPicker = (teamKey, slotIndex) => {
+  setSlotTarget({ teamKey, slotIndex });
+  setShowPlayerPicker(true);
+};
 
 
   const addTeam1 = () => {
@@ -487,13 +490,12 @@ const reduceTeam2 = () => {
     setActivePlayer({ player, fromTeam: "team1" })}
   setCourt={setCourt}
   
-  onEmptySlotClick={openScannerForSlot}
- 
+          
 
  
 
   isFinished={isFinished}
-
+onEmptySlotClick={openPlayerPicker}
     />
         <TeamColumn 
         title="TEAM 2" 
@@ -506,6 +508,10 @@ const reduceTeam2 = () => {
         setCourt={setCourt}
         
         onEmptySlotClick={openScannerForSlot}
+        onClick={() => {
+  onEmptySlotClick(teamKey, players.length + i);
+}}
+
       
         
         isFinished={isFinished}
@@ -814,6 +820,92 @@ onClick={() => {
     >
       Batal
     </button>
+  
+  {showPlayerPicker && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.75)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 999,
+    }}
+  >
+    <div
+      style={{
+        background: "#121212",
+        padding: 24,
+        borderRadius: 18,
+        minWidth: 300,
+        boxShadow: "0 0 40px rgba(79,209,197,0.6)",
+      }}
+    >
+      <div style={{ marginBottom: 12, fontWeight: 600 }}>
+        Pilih Pemain
+      </div>
+
+      {allPlayers.map(p => (
+        <button
+          key={p.id}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginBottom: 8,
+            borderRadius: 10,
+            background: "#0B1F1E",
+            color: "#4FD1C5",
+            border: "1px solid #4FD1C5",
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            const target = slotTargetRef.current;
+            if (!target) return;
+
+            setCourt(prev => ({
+              ...prev,
+              [target.teamKey]: [
+                ...prev[target.teamKey],
+                {
+                  id: p.id,
+                  name: p.name,
+                  photoUrl: p.photoUrl || "",
+                  isVIP: p.isVIP || false,
+                  slot: SLOT_ORDER[target.slotIndex],
+                },
+              ],
+            }));
+
+            setShowPlayerPicker(false);
+            slotTargetRef.current = null;
+          }}
+        >
+          {p.name}
+        </button>
+      ))}
+
+      <button
+        style={{
+          marginTop: 12,
+          width: "100%",
+          padding: 10,
+          borderRadius: 10,
+          background: "#1A0F0F",
+          color: "#FF8A8A",
+          border: "1px solid #553333",
+        }}
+        onClick={() => {
+          setShowPlayerPicker(false);
+          slotTargetRef.current = null;
+        }}
+      >
+        Batal
+      </button>
+    </div>
+  </div>
+)}
+
   </div>
 )}
 
