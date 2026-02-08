@@ -1145,7 +1145,51 @@ function InfoRow({ left, right, badge }) {
     </div>
   );
 }
-<style jsx global>{`
+<style jsx global>{
+`
+/* =========================
+   QUEEN BADGE – GOLD WHITE
+========================= */
+
+.queen-badge {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #FFF8DC; /* ivory white */
+
+  text-shadow:
+    0 0 4px rgba(255,255,255,0.9),
+    0 0 8px rgba(255,215,0,0.7),
+    0 0 14px rgba(255,215,0,0.5);
+
+  animation: queenGlow 2.4s ease-in-out infinite;
+}
+
+/* ✨ GOLD–WHITE SOFT GLOW */
+@keyframes queenGlow {
+  0% {
+    text-shadow:
+      0 0 3px rgba(255,255,255,0.8),
+      0 0 6px rgba(255,215,0,0.5),
+      0 0 10px rgba(255,215,0,0.35);
+  }
+
+  50% {
+    text-shadow:
+      0 0 6px rgba(255,255,255,1),
+      0 0 14px rgba(255,215,0,1),
+      0 0 22px rgba(255,215,0,0.85);
+  }
+
+  100% {
+    text-shadow:
+      0 0 3px rgba(255,255,255,0.8),
+      0 0 6px rgba(255,215,0,0.5),
+      0 0 10px rgba(255,215,0,0.35);
+  }
+}
+
 @keyframes winnerGlow {
   0% {
     box-shadow:
