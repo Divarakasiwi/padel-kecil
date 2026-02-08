@@ -454,7 +454,8 @@ const reduceTeam2 = () => {
         borderRadius: "18px",
         padding: "20px",
         border: "1px solid #222",
-    
+        position: "relative",  
+        overflow: "hidden",   
       }}
     >
       {/* HEADER */}
