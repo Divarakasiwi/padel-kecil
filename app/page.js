@@ -830,15 +830,16 @@ onClick={() => {
 {showPlayerPicker && (
   <div
     style={{
-      position: "fixed",
+      position: "absolute",
       inset: 0,
       background: "rgba(0,0,0,0.75)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      zIndex: 999,
+      zIndex: 50,
     }}
   >
+
     <div
       style={{
         background: "#121212",
@@ -977,6 +978,9 @@ function TeamColumn({
     borderRadius: "50%",
     objectFit: "cover",
     background: "#222",
+    position: "relative",
+    overflow: "hidden",
+  
   }}
 />
 
