@@ -852,7 +852,10 @@ onClick={() => {
         Pilih Pemain
       </div>
 
-      {allPlayers.map(p => (
+      {allPlayers
+  .filter(p => p.name && p.name.trim() !== "")
+  .map(p => (
+
         <button
           key={p.id}
           style={{
