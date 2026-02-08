@@ -988,14 +988,31 @@ function TeamColumn({
   )}
 
   <div>
-    <div>{p.name}</div>
+  <div>{p.name}</div>
 
-    {p.isVIP && (
-      <div style={{ fontSize: 11, color: "#FFD700" }}>
-        ⭐ VIP
-      </div>
-    )}
-  </div>
+  {/* 👑 QUEEN BADGE */}
+  {p.badge === "queen" && (
+    <div
+      style={{
+        marginTop: 2,
+        fontSize: 11,
+        color: "#FF6BFF",
+        fontWeight: 600,
+        textShadow: "0 0 6px rgba(255,107,255,0.8)",
+      }}
+    >
+      👑 QUEEN
+    </div>
+  )}
+
+  {/* ⭐ VIP (tetap ada kalau mau) */}
+  {p.isVIP && (
+    <div style={{ fontSize: 11, color: "#FFD700" }}>
+      ⭐ VIP
+    </div>
+  )}
+</div>
+
 </div>
 
     </div>
