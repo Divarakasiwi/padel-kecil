@@ -1145,8 +1145,7 @@ function InfoRow({ left, right, badge }) {
     </div>
   );
 }
-<style jsx global>{
-`
+<style jsx global>{`
 /* =========================
    QUEEN BADGE – GOLD WHITE
 ========================= */
