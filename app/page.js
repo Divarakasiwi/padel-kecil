@@ -213,7 +213,7 @@ function Header({ now,mounted }) {
   );
 }
 
-function CourtCard({ title, court, setCourt, initialCourt, }) {
+function CourtCard({ title, court, setCourt, initialCourt }) {
 const addTestPlayer = () => {
   if (court.team1.length >= 2) return;
 
@@ -235,15 +235,22 @@ const addTestPlayer = () => {
 
 
   const qrRef = useRef(null);
+  const scanTargetRef = useRef(null);
+  const openScannerForSlot = (teamKey, slotIndex) => {
+  scanTargetRef.current = { teamKey, slotIndex };
+  setShowScanner(true);
+};
 
-const [scanTarget, setScanTarget] = useState(null);
+
+
+
 
 const [activePlayer, setActivePlayer] = useState(null);
 const activePlayerIdsRef = useRef(new Set());
 
 const [showScanner, setShowScanner] = useState(false);
 useEffect(() => {
-  if (!showScanner || !scanTarget) return;
+  if (!showScanner || !scanTargetRef.current) return;
 
   let isCancelled = false;
 
@@ -255,60 +262,64 @@ useEffect(() => {
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         async (decodedText) => {
-          if (isCancelled) return;
+  if (isCancelled) return;
 
-          await qrRef.current.stop();
-          await qrRef.current.clear();
-          qrRef.current = null;
+  const playerId = decodedText.trim();
 
-          const playerId = decodedText.trim();
+  // ⬇️ JANGAN STOP DI SINI
 
-          if (activePlayerIdsRef.current.has(playerId)) {
-            alert("Player ini sedang bermain di tempat lain");
-            setShowScanner(false);
-            setScanTarget(null);
-            return;
-          }
-
-          
-
-          const ref = doc(db, "players", playerId);
-const snap = await getDoc(ref);
-
-if (!snap.exists()) {
-  alert("Player tidak ditemukan");
-  setShowScanner(false);
-  setScanTarget(null);
-  return;
-}
-
-setCourt(prev => {
-  // ❗ VALIDASI FULL DI SINI
-  if (prev[scanTarget.teamKey].length >= 2) {
-    alert("Tim ini sudah penuh");
-    return prev;
+  if (activePlayerIdsRef.current.has(playerId)) {
+    alert("Player ini sedang bermain di tempat lain");
+    setShowScanner(false);
+    scanTargetRef.current = null;
+    return;
   }
 
-  return {
-    ...prev,
-    [scanTarget.teamKey]: [
-      ...prev[scanTarget.teamKey],
-      {
-        id: playerId,
-        name: snap.data().name,
-        isVIP: snap.data().isVIP || false,
-        photoUrl: snap.data().photoUrl || "",
-        slot: SLOT_ORDER[scanTarget.slotIndex],
-      },
-    ],
-  };
-});
+  const ref = doc(db, "players", playerId);
+  const snap = await getDoc(ref);
 
-activePlayerIdsRef.current.add(playerId);
-setShowScanner(false);
-setScanTarget(null);
+  if (!snap.exists()) {
+    alert("Player tidak ditemukan");
+    setShowScanner(false);
+    scanTargetRef.current = null;
+    return;
+  }
 
-        }
+  setCourt(prev => {
+    const target = scanTargetRef.current;
+    if (!target) return prev;
+
+    if (prev[target.teamKey].length >= 2) {
+      alert("Tim ini sudah penuh");
+      return prev;
+    }
+
+    return {
+      ...prev,
+      [target.teamKey]: [
+        ...prev[target.teamKey],
+        {
+          id: playerId,
+          name: snap.data().name,
+          isVIP: snap.data().isVIP || false,
+          photoUrl: snap.data().photoUrl || "",
+          slot: SLOT_ORDER[target.slotIndex],
+        },
+      ],
+    };
+  });
+
+  activePlayerIdsRef.current.add(playerId);
+
+  // ✅ BARU DI SINI STOP KAMERA
+  await qrRef.current.stop();
+  await qrRef.current.clear();
+  qrRef.current = null;
+
+  setShowScanner(false);
+  scanTargetRef.current = null;
+}
+
       );
     } catch (e) {
       console.error(e);
@@ -325,13 +336,7 @@ setScanTarget(null);
       qrRef.current = null;
     }
   };
-}, [showScanner, scanTarget]);
-
-
-
-
-
-
+}, [showScanner]);
 
 
 
@@ -427,8 +432,8 @@ const reduceTeam2 = () => {
     setActivePlayer({ player, fromTeam: "team1" })}
   setCourt={setCourt}
   
-  setShowScanner={setShowScanner}
-  setScanTarget={setScanTarget}
+  onEmptySlotClick={openScannerForSlot}
+ 
 
  
 
@@ -445,8 +450,8 @@ const reduceTeam2 = () => {
         setActivePlayer({ player, fromTeam: "team2" })}
         setCourt={setCourt}
         
-        setShowScanner={setShowScanner}
-       setScanTarget={setScanTarget}
+        onEmptySlotClick={openScannerForSlot}
+      
         
         isFinished={isFinished}
 
@@ -672,7 +677,8 @@ onClick={() => {
       await qrRef.current.clear().catch(() => {});
       qrRef.current = null;
     }
-    setScanTarget(null);
+    scanTargetRef.current = null;
+
     setShowScanner(false);
   }}
 >
@@ -745,7 +751,8 @@ onClick={() => {
     <button
       onClick={() => {
         setShowScanner(false);
-       setScanTarget(null);
+       scanTargetRef.current = null;
+
 
       }}
       style={{ marginTop: 12 }}
@@ -764,16 +771,15 @@ onClick={() => {
 
 function TeamColumn({
   title,
-  players = [],
+  players,
   teamKey,
   color,
   isWinner,
   onSelect,
-  setCourt,
   isFinished,
-  setShowScanner,
-  setScanTarget
+  onEmptySlotClick,
 }) {
+
  
   const MAX_PLAYER = 2;
   const emptyCount = Math.max(0, MAX_PLAYER - players.length);
@@ -845,13 +851,9 @@ function TeamColumn({
 
 
     onClick={() => {
-  setScanTarget({
-  teamKey,
-  slotIndex: players.length + i,
-});
-setShowScanner(true);
-
+  onEmptySlotClick(teamKey, players.length + i);
 }}
+
 
 
 
