@@ -884,8 +884,10 @@ onClick={() => {
                   name: p.name,
                   photoUrl: p.photoUrl || "",
                   isVIP: p.isVIP || false,
+                  badge: p.badge || null,   // 👑 INI YANG KURANG
                   slot: SLOT_ORDER[target.slotIndex],
-                },
+                }
+
               ],
             }));
 
