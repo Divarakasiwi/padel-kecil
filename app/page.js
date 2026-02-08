@@ -250,7 +250,7 @@ function Header({ now,mounted }) {
   );
 }
 
-function CourtCard({ title, court, setCourt, initialCourt }) {
+function CourtCard({ title, court, setCourt, initialCourt,setSlotTarget }) {
   const [allPlayers, setAllPlayers] = useState([]);
   const addTestPlayer = () => {
 
