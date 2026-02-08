@@ -270,14 +270,44 @@ useEffect(() => {
             return;
           }
 
-          if (court[scanTarget.teamKey].length >= 2) {
-            alert("Tim ini sudah penuh");
-            setShowScanner(false);
-            setScanTarget(null);
-            return;
-          }
+          
 
-          // lanjut setCourt seperti sekarang (TIDAK DIUBAH)
+          const ref = doc(db, "players", playerId);
+const snap = await getDoc(ref);
+
+if (!snap.exists()) {
+  alert("Player tidak ditemukan");
+  setShowScanner(false);
+  setScanTarget(null);
+  return;
+}
+
+setCourt(prev => {
+  // ❗ VALIDASI FULL DI SINI
+  if (prev[scanTarget.teamKey].length >= 2) {
+    alert("Tim ini sudah penuh");
+    return prev;
+  }
+
+  return {
+    ...prev,
+    [scanTarget.teamKey]: [
+      ...prev[scanTarget.teamKey],
+      {
+        id: playerId,
+        name: snap.data().name,
+        isVIP: snap.data().isVIP || false,
+        photoUrl: snap.data().photoUrl || "",
+        slot: SLOT_ORDER[scanTarget.slotIndex],
+      },
+    ],
+  };
+});
+
+activePlayerIdsRef.current.add(playerId);
+setShowScanner(false);
+setScanTarget(null);
+
         }
       );
     } catch (e) {
@@ -547,8 +577,8 @@ onTouchEnd={(e) => {
     name: activePlayer.player.name,
     slot: activePlayer.player.slot,
   };
-setCourt(prev => ({
-  ...prev,
+    setCourt(prev => ({
+      ...prev,
   [from]: prev[from].filter(p => p.id !== movingPlayer.id),
   [to]: [...prev[to], movingPlayer],
 }));
