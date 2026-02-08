@@ -1,5 +1,7 @@
 "use client";
 console.log("🔥 PAGE.JS TERBARU AKTIF 🔥");
+import { collection, getDocs } from "firebase/firestore";
+
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useState, useRef } from "react";
 
@@ -214,6 +216,8 @@ function Header({ now,mounted }) {
 }
 
 function CourtCard({ title, court, setCourt, initialCourt }) {
+  const [allPlayers, setAllPlayers] = useState([]);
+
 const addTestPlayer = () => {
   if (court.team1.length >= 2) return;
 
@@ -249,6 +253,22 @@ const [activePlayer, setActivePlayer] = useState(null);
 const activePlayerIdsRef = useRef(new Set());
 
 const [showScanner, setShowScanner] = useState(false);
+useEffect(() => {
+  const fetchPlayers = async () => {
+    const snap = await getDocs(collection(db, "players"));
+    const list = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log("🔥 ALL PLAYERS:", list);
+    setAllPlayers(list);
+  };
+
+  fetchPlayers();
+}, []);
+
+
 useEffect(() => {
   if (!showScanner || !scanTargetRef.current) return;
 
