@@ -66,6 +66,7 @@ const [mounted, setMounted] = useState(false);
 
 
 
+
 useEffect(() => {
   setMounted(true);
 
@@ -125,6 +126,7 @@ useEffect(() => {
     court={court1}
     setCourt={setCourt1}
     initialCourt={initialCourt1}
+    
   />
 
   {/* ADD COURT PLACEHOLDER */}
@@ -250,7 +252,9 @@ function Header({ now,mounted }) {
   );
 }
 
-function CourtCard({ title, court, setCourt, initialCourt,setSlotTarget }) {
+function CourtCard({ title, court, setCourt, initialCourt, setSlotTarget }) {
+  const [showPlayerPicker, setShowPlayerPicker] = useState(false);
+
   const [allPlayers, setAllPlayers] = useState([]);
   const addTestPlayer = () => {
 
@@ -271,7 +275,7 @@ function CourtCard({ title, court, setCourt, initialCourt,setSlotTarget }) {
 
 
 
-
+const slotTargetRef = useRef(null);
   const qrRef = useRef(null);
   const scanTargetRef = useRef(null);
   const openScannerForSlot = (teamKey, slotIndex) => {
@@ -409,9 +413,10 @@ const winner =
     : null;
 
 const openPlayerPicker = (teamKey, slotIndex) => {
-  setSlotTarget({ teamKey, slotIndex });
+  slotTargetRef.current = { teamKey, slotIndex };
   setShowPlayerPicker(true);
 };
+
 
 
   const addTeam1 = () => {
@@ -508,10 +513,7 @@ onEmptySlotClick={openPlayerPicker}
         setCourt={setCourt}
         
         onEmptySlotClick={openScannerForSlot}
-        onClick={() => {
-  onEmptySlotClick(teamKey, players.length + i);
-}}
-
+       
       
         
         isFinished={isFinished}
@@ -821,7 +823,11 @@ onClick={() => {
       Batal
     </button>
   
-  {showPlayerPicker && (
+  
+
+  </div>
+)}
+{showPlayerPicker && (
   <div
     style={{
       position: "fixed",
@@ -903,9 +909,6 @@ onClick={() => {
         Batal
       </button>
     </div>
-  </div>
-)}
-
   </div>
 )}
 
