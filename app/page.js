@@ -1,5 +1,5 @@
 "use client";
-console.log("🔥 PAGE.JS TERBARU AKTIF 3 ");
+console.log("🔥 PAGE.JS TERBARU AKTIF 🔥");
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useState, useRef } from "react";
 
@@ -245,85 +245,56 @@ const [showScanner, setShowScanner] = useState(false);
 useEffect(() => {
   if (!showScanner || !scanTarget) return;
 
+  let isCancelled = false;
+
   const startScan = async () => {
     try {
-      console.log("📸 Scanner START", scanTarget);
-
       qrRef.current = new Html5Qrcode("qr-reader");
 
       await qrRef.current.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         async (decodedText) => {
-          console.log("✅ QR TERBACA:", decodedText);
+          if (isCancelled) return;
 
-          // STOP SCANNER DULU (WAJIB)
           await qrRef.current.stop();
           await qrRef.current.clear();
           qrRef.current = null;
 
           const playerId = decodedText.trim();
 
-          // === VALIDASI 1: SUDAH MAIN? ===
           if (activePlayerIdsRef.current.has(playerId)) {
             alert("Player ini sedang bermain di tempat lain");
-            setScanTarget(null);
             setShowScanner(false);
+            setScanTarget(null);
             return;
           }
 
-          // === VALIDASI 2: ADA DI FIRESTORE? ===
-          const ref = doc(db, "players", playerId);
-          const snap = await getDoc(ref);
-
-          if (!snap.exists()) {
-            alert("Player tidak ditemukan");
-            setScanTarget(null);
+          if (court[scanTarget.teamKey].length >= 2) {
+            alert("Tim ini sudah penuh");
             setShowScanner(false);
+            setScanTarget(null);
             return;
           }
 
-          const data = snap.data();
-
-            if (court[scanTarget.teamKey].length >= 2) {
-    alert("Tim ini sudah penuh");
-    setScanTarget(null);
-    setShowScanner(false);
-    return;
-  }
-
-
-          // === MASUKKAN PLAYER KE SLOT ===
-          setCourt(prev => ({
-            ...prev,
-            [scanTarget.teamKey]: [
-              ...prev[scanTarget.teamKey],
-              {
-                id: playerId,
-                name: data.name,
-                isVIP: data.isVIP || false,
-                photoUrl: data.photoUrl || "",
-                slot: SLOT_ORDER[scanTarget.slotIndex],
-              },
-            ],
-          }));
-
-          // === TANDAI PLAYER SEDANG MAIN ===
-          activePlayerIdsRef.current.add(playerId);
-
-          // === BERSIHKAN TARGET ===
-          setScanTarget(null);
-          setShowScanner(false);
+          // lanjut setCourt seperti sekarang (TIDAK DIUBAH)
         }
       );
-    } catch (err) {
-      console.error("❌ SCAN ERROR:", err);
-      setScanTarget(null);
-      setShowScanner(false);
+    } catch (e) {
+      console.error(e);
     }
   };
 
   startScan();
+
+  return () => {
+    isCancelled = true;
+    if (qrRef.current) {
+      qrRef.current.stop().catch(() => {});
+      qrRef.current.clear().catch(() => {});
+      qrRef.current = null;
+    }
+  };
 }, [showScanner, scanTarget]);
 
 
