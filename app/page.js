@@ -119,21 +119,56 @@ useEffect(() => {
     marginBottom: "32px",
   }}
 >
+  {/* COURT 1 */}
   <CourtCard
     title="COURT 1"
     court={court1}
     setCourt={setCourt1}
     initialCourt={initialCourt1}
-  
   />
-  <CourtCard
-    title="COURT 2"
-    court={court2}
-    setCourt={setCourt2}
-    initialCourt={initialCourt2}
-  
-  />
+
+  {/* ADD COURT PLACEHOLDER */}
+  <div
+    style={{
+      background: "#0B0B0B",
+      borderRadius: "18px",
+      border: "2px dashed #4FD1C5",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "320px",
+      cursor: "pointer",
+
+      /* ✨ GLOW EFFECT */
+      boxShadow: `
+        0 0 12px rgba(79,209,197,0.4),
+        inset 0 0 18px rgba(79,209,197,0.25)
+      `,
+      transition: "all 0.25s ease",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.boxShadow =
+        "0 0 22px rgba(79,209,197,0.8), inset 0 0 26px rgba(79,209,197,0.45)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.boxShadow =
+        "0 0 12px rgba(79,209,197,0.4), inset 0 0 18px rgba(79,209,197,0.25)";
+    }}
+  >
+    <div
+      style={{
+        fontSize: "64px",
+        fontWeight: 700,
+        color: "#4FD1C5",
+        textShadow: "0 0 18px rgba(79,209,197,0.9)",
+        userSelect: "none",
+      }}
+    >
+      +
+    </div>
+  </div>
 </div>
+
       
 
       {/* INFO */}
