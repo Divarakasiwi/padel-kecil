@@ -1,5 +1,5 @@
 "use client";
-console.log("🔥 PAGE.JS TERBARU AKTIF 2");
+console.log("🔥 PAGE.JS TERBARU AKTIF 3 ");
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useState, useRef } from "react";
 
@@ -238,22 +238,17 @@ const addTestPlayer = () => {
 
 const [scanTarget, setScanTarget] = useState(null);
 
-
-
-
-
-
-
-
 const [activePlayer, setActivePlayer] = useState(null);
+const activePlayerIdsRef = useRef(new Set());
 
 const [showScanner, setShowScanner] = useState(false);
 useEffect(() => {
   if (!showScanner || !scanTarget) return;
-  if (!scanTargetRef.current) return;
 
   const startScan = async () => {
     try {
+      console.log("📸 Scanner START", scanTarget);
+
       qrRef.current = new Html5Qrcode("qr-reader");
 
       await qrRef.current.start(
@@ -262,51 +257,75 @@ useEffect(() => {
         async (decodedText) => {
           console.log("✅ QR TERBACA:", decodedText);
 
-          const target = scanTarget;
-          if (!target) return;
-
+          // STOP SCANNER DULU (WAJIB)
           await qrRef.current.stop();
           await qrRef.current.clear();
           qrRef.current = null;
 
           const playerId = decodedText.trim();
+
+          // === VALIDASI 1: SUDAH MAIN? ===
+          if (activePlayerIdsRef.current.has(playerId)) {
+            alert("Player ini sedang bermain di tempat lain");
+            setScanTarget(null);
+            setShowScanner(false);
+            return;
+          }
+
+          // === VALIDASI 2: ADA DI FIRESTORE? ===
           const ref = doc(db, "players", playerId);
           const snap = await getDoc(ref);
 
           if (!snap.exists()) {
             alert("Player tidak ditemukan");
+            setScanTarget(null);
+            setShowScanner(false);
             return;
           }
 
           const data = snap.data();
 
+            if (court[scanTarget.teamKey].length >= 2) {
+    alert("Tim ini sudah penuh");
+    setScanTarget(null);
+    setShowScanner(false);
+    return;
+  }
+
+
+          // === MASUKKAN PLAYER KE SLOT ===
           setCourt(prev => ({
             ...prev,
-            [target.teamKey]: [
-              ...prev[target.teamKey],
+            [scanTarget.teamKey]: [
+              ...prev[scanTarget.teamKey],
               {
                 id: playerId,
                 name: data.name,
                 isVIP: data.isVIP || false,
-                photoUrl: data.photourl || "",
-                slot: SLOT_ORDER[target.slotIndex],
+                photoUrl: data.photoUrl || "",
+                slot: SLOT_ORDER[scanTarget.slotIndex],
               },
             ],
           }));
 
+          // === TANDAI PLAYER SEDANG MAIN ===
+          activePlayerIdsRef.current.add(playerId);
+
+          // === BERSIHKAN TARGET ===
           setScanTarget(null);
           setShowScanner(false);
         }
       );
     } catch (err) {
       console.error("❌ SCAN ERROR:", err);
+      setScanTarget(null);
+      setShowScanner(false);
     }
   };
 
   startScan();
+}, [showScanner, scanTarget]);
 
-  
-}, [showScanner,scanTarget]);
 
 
 
@@ -408,7 +427,8 @@ const reduceTeam2 = () => {
   setCourt={setCourt}
   
   setShowScanner={setShowScanner}
-  scanTargetRef={scanTargetRef}
+  setScanTarget={setScanTarget}
+
  
 
   isFinished={isFinished}
@@ -425,7 +445,7 @@ const reduceTeam2 = () => {
         setCourt={setCourt}
         
         setShowScanner={setShowScanner}
-         scanTargetRef={scanTargetRef}
+       setScanTarget={setScanTarget}
         
         isFinished={isFinished}
 
@@ -561,6 +581,9 @@ setCourt(prev => ({
   [from]: prev[from].filter(p => p.id !== movingPlayer.id),
   [to]: [...prev[to], movingPlayer],
 }));
+activePlayerIdsRef.current.delete(movingPlayer.id);
+
+
 
         setActivePlayer(null);
       }}
@@ -619,6 +642,7 @@ onClick={() => {
     };
   });
 
+
   setActivePlayer(null);
 }}
 
@@ -647,14 +671,13 @@ onClick={() => {
       await qrRef.current.clear().catch(() => {});
       qrRef.current = null;
     }
-
-    scanTargetRef.current = null;
-   
+    setScanTarget(null);
     setShowScanner(false);
   }}
 >
   Batal
 </button>
+
 
   </div>
 )}
@@ -680,9 +703,11 @@ onClick={() => {
 {/* RESET COURT */}
 {isFinished && (
   <button
-    onClick={() =>
-      setCourt({ ...initialCourt })
-}
+    onClick={() => {
+  activePlayerIdsRef.current.clear();
+  setCourt({ ...initialCourt });
+}}
+
     
     style={{
       width: "100%",
@@ -719,7 +744,7 @@ onClick={() => {
     <button
       onClick={() => {
         setShowScanner(false);
-        scanTargetRef.current = null;
+       setScanTarget(null);
 
       }}
       style={{ marginTop: 12 }}
@@ -736,8 +761,19 @@ onClick={() => {
 }
 
 
-function TeamColumn({ title, players = [],teamKey, color, isWinner, onSelect,setCourt, isFinished,
-  setShowScanner, scanTargetRef}) {
+function TeamColumn({
+  title,
+  players = [],
+  teamKey,
+  color,
+  isWinner,
+  onSelect,
+  setCourt,
+  isFinished,
+  setShowScanner,
+  setScanTarget
+}) {
+ 
   const MAX_PLAYER = 2;
   const emptyCount = Math.max(0, MAX_PLAYER - players.length);
 
