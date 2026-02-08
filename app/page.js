@@ -361,6 +361,7 @@ useEffect(() => {
           name: snap.data().name,
           isVIP: snap.data().isVIP || false,
           photoUrl: snap.data().photoUrl || "",
+          badge: snap.data().badge || null,
           slot: SLOT_ORDER[target.slotIndex],
         },
       ],
