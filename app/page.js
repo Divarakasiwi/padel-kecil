@@ -5,8 +5,8 @@ import { collection, getDocs } from "firebase/firestore";
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useState, useRef } from "react";
 
-  const SLOT_ORDER = ["A", "B", "C", "D"];
- const SLOT_COLORS = {
+const SLOT_ORDER = ["A", "B", "C", "D"];
+const SLOT_COLORS = {
   A: {
     bg: "#2A0F0F",
     border: "#FF6B6B",
@@ -34,22 +34,22 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 
-const initialCourt1={
+const initialCourt1 = {
     team1: [],
     team2: [],
 
     score1: 0,
     score2: 0,
     finished: false,
-              };
+};
 
-  const initialCourt2={
+const initialCourt2 = {
     team1: [],
     team2: [],
     score1: 0,
     score2: 0,
     finished: false,
-  };
+};
 export default function Dashboard() {
   const [now, setNow] = useState(new Date());
  /* =====================
@@ -252,7 +252,7 @@ function Header({ now,mounted }) {
   );
 }
 
-function CourtCard({ title, court, setCourt, initialCourt, setSlotTarget }) {
+function CourtCard({ title, court, setCourt, initialCourt }) {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
 
   const [allPlayers, setAllPlayers] = useState([]);
@@ -279,9 +279,9 @@ const slotTargetRef = useRef(null);
   const qrRef = useRef(null);
   const scanTargetRef = useRef(null);
   const openScannerForSlot = (teamKey, slotIndex) => {
-  scanTargetRef.current = { teamKey, slotIndex };
-  setShowScanner(true);
-};
+    scanTargetRef.current = { teamKey, slotIndex };
+    setShowScanner(true);
+  };
 
 
 
@@ -294,7 +294,7 @@ const [showScanner, setShowScanner] = useState(false);
 useEffect(() => {
   const fetchPlayers = async () => {
     const snap = await getDocs(collection(db, "players"));
-    const list = snap.docs.map(doc => ({
+    const list = snap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
@@ -306,7 +306,6 @@ useEffect(() => {
   fetchPlayers();
 }, []);
 
-
 useEffect(() => {
   if (!showScanner || !scanTargetRef.current) return;
 
@@ -314,7 +313,9 @@ useEffect(() => {
 
   const startScan = async () => {
     try {
-      qrRef.current = new Html5Qrcode("qr-reader");
+      if (!qrRef.current) {
+        qrRef.current = new Html5Qrcode("qr-reader");
+      }
 
       await qrRef.current.start(
         { facingMode: "environment" },
@@ -937,8 +938,6 @@ function TeamColumn({
   isFinished,
   onEmptySlotClick,
 }) {
-
- 
   const MAX_PLAYER = 2;
   const emptyCount = Math.max(0, MAX_PLAYER - players.length);
 
@@ -1023,7 +1022,7 @@ function TeamColumn({
 })}
 
 {/* SLOT KOSONG */}
-{Array.from({ length: 2 - players.length }).map((_, i) => (
+{Array.from({ length: emptyCount }).map((_, i) => (
   <div
     key={`empty-${i}`}
 
