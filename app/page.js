@@ -313,6 +313,12 @@ useEffect(() => {
 
   const startScan = async () => {
     try {
+      // "lock" target slot saat scanner dibuka,
+      // supaya tidak hilang kalau ref berubah di tengah jalan
+      const target = scanTargetRef.current;
+      console.log("[QR] locked target at startScan:", target);
+      if (!target) return;
+
       if (!qrRef.current) {
         qrRef.current = new Html5Qrcode("qr-reader");
       }
@@ -344,9 +350,7 @@ useEffect(() => {
           }
 
           setCourt((prev) => {
-            const target = scanTargetRef.current;
-            console.log("[QR] target slot:", target, "current court:", prev);
-            if (!target) return prev;
+            console.log("[QR] target slot (locked):", target, "current court:", prev);
 
             if (prev[target.teamKey].length >= 2) {
               alert("Tim ini sudah penuh");
