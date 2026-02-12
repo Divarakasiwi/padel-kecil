@@ -1,6 +1,6 @@
 "use client";
 console.log("🔥 PAGE.JS TERBARU AKTIF 🔥");
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useState, useRef, useMemo } from "react";
@@ -42,6 +42,30 @@ function getTodayKey() {
   return `${y}-${m}-${d}`; // contoh: 2026-02-12
 }
 
+const MATCH_QUEUE_KEY = "padelkecil:matches:queue";
+
+function loadMatchQueue() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(MATCH_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+function saveMatchQueue(queue) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(MATCH_QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    // abaikan error storage
+  }
+}
+
 const initialCourt1 = {
     team1: [],
     team2: [],
@@ -60,7 +84,7 @@ const initialCourt2 = {
 };
 export default function Dashboard() {
   const [now, setNow] = useState(new Date());
- /* =====================
+  /* =====================
      COURT STATE
   ===================== */
 
@@ -74,18 +98,59 @@ export default function Dashboard() {
   const [court2, setCourt2] = useState(initialCourt2);
   const [mounted, setMounted] = useState(false);
 
-  // status kecil di pojok (online/offline/error)
+  // status kecil di pojok (online/offline/error/sync)
   const [systemStatus, setSystemStatus] = useState({
-    level: "ok", // "ok" | "warning" | "error"
+    level: "ok", // "ok" | "warning" | "error" | "syncing"
     message: "Semua sistem normal",
   });
   const [showStatusDetail, setShowStatusDetail] = useState(false);
- 
+  const [isSyncingMatches, setIsSyncingMatches] = useState(false);
 
+  // ====== FUNGSI SYNC MATCH QUEUE KE FIRESTORE ======
+  const trySyncMatchQueue = async () => {
+    if (typeof window === "undefined") return;
+    if (!navigator.onLine) return;
 
+    const queue = loadMatchQueue();
+    if (!queue.some((m) => !m.synced)) return;
 
+    setIsSyncingMatches(true);
+    setSystemStatus((prev) => ({
+      ...prev,
+      level: "syncing",
+      message: "Menyinkronkan hasil match ke server...",
+    }));
 
+    let changed = false;
 
+    for (let i = 0; i < queue.length; i++) {
+      const item = queue[i];
+      if (item.synced) continue;
+
+      try {
+        await addDoc(collection(db, "matches"), item.data);
+        queue[i] = { ...item, synced: true };
+        changed = true;
+      } catch (e) {
+        console.error("Gagal sync match ke server, akan dicoba lagi nanti", e);
+        break;
+      }
+    }
+
+    if (changed) {
+      saveMatchQueue(queue);
+    }
+
+    setIsSyncingMatches(false);
+
+    setSystemStatus((prev) => ({
+      ...prev,
+      level: navigator.onLine ? "ok" : "warning",
+      message: navigator.onLine
+        ? "Online – data match tersinkron dengan server."
+        : "Offline – data tersimpan aman di perangkat dan akan disinkronkan saat koneksi kembali.",
+    }));
+  };
 
 useEffect(() => {
   setMounted(true);
@@ -104,6 +169,8 @@ useEffect(() => {
       level: "ok",
       message: "Online – data siap disinkronkan ke server.",
     }));
+    // saat kembali online, coba sync antrian match
+    trySyncMatchQueue();
   };
 
   const applyOfflineState = () => {
@@ -161,6 +228,28 @@ useEffect(() => {
     console.error("Gagal simpan state court ke storage", e);
   }
 }, [court1, storageKey]);
+
+// ===== HANDLE FINISH MATCH: SIMPAN KE ANTRIAN MATCH =====
+const handleMatchFinished = (result) => {
+  const queue = loadMatchQueue();
+  const item = {
+    id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+    data: result,
+    synced: false,
+  };
+
+  saveMatchQueue([...queue, item]);
+
+  setSystemStatus((prev) => ({
+    ...prev,
+    level: "syncing",
+    message:
+      "Hasil match tersimpan di perangkat dan sedang dikirim ke server (jika koneksi tersedia).",
+  }));
+
+  // coba sync langsung kalau online
+  trySyncMatchQueue();
+};
 
  
   /* =====================
@@ -223,6 +312,7 @@ useEffect(() => {
     setCourt={setCourt1}
     initialCourt={initialCourt1}
     reportStatus={setSystemStatus}
+    onMatchFinished={handleMatchFinished}
   />
 
   {/* ADD COURT PLACEHOLDER */}
@@ -935,6 +1025,31 @@ const reduceTeam2 = () => {
 
     // kunci skor sebagai hasil akhir
     setCourt((prev) => ({ ...prev, finished: true }));
+
+    // kirim hasil match ke handler di atas (Dashboard)
+    if (typeof window !== "undefined") {
+      const result = {
+        dayKey: getTodayKey(),
+        finishedAt: new Date().toISOString(),
+        courtName: title,
+        score1: court.score1,
+        score2: court.score2,
+        winner:
+          court.score1 > court.score2
+            ? "team1"
+            : court.score2 > court.score1
+            ? "team2"
+            : "draw",
+        team1PlayerIds: court.team1.map((p) => p.id),
+        team2PlayerIds: court.team2.map((p) => p.id),
+      };
+      reportStatus?.({
+        level: "syncing",
+        message:
+          "Hasil match tersimpan di perangkat dan sedang dikirim ke server (jika koneksi tersedia).",
+      });
+      onMatchFinished?.(result);
+    }
   }}
 
   style={{
