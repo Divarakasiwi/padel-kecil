@@ -337,8 +337,12 @@ useEffect(() => {
 
             // pastikan scanner dimatikan dengan benar
             if (qrRef.current) {
-              await qrRef.current.stop().catch(() => {});
-              await qrRef.current.clear().catch(() => {});
+              try {
+                await qrRef.current.stop();
+              } catch (e) {}
+              try {
+                await qrRef.current.clear();
+              } catch (e) {}
               qrRef.current = null;
             }
 
@@ -354,8 +358,12 @@ useEffect(() => {
             alert("Player tidak ditemukan");
 
             if (qrRef.current) {
-              await qrRef.current.stop().catch(() => {});
-              await qrRef.current.clear().catch(() => {});
+              try {
+                await qrRef.current.stop();
+              } catch (e) {}
+              try {
+                await qrRef.current.clear();
+              } catch (e) {}
               qrRef.current = null;
             }
 
@@ -394,9 +402,15 @@ useEffect(() => {
           activePlayerIdsRef.current.add(playerId);
 
           // ✅ BARU DI SINI STOP KAMERA
-          await qrRef.current.stop();
-          await qrRef.current.clear();
-          qrRef.current = null;
+          if (qrRef.current) {
+            try {
+              await qrRef.current.stop();
+            } catch (e) {}
+            try {
+              await qrRef.current.clear();
+            } catch (e) {}
+            qrRef.current = null;
+          }
 
           setShowScanner(false);
           scanTargetRef.current = null;
@@ -413,8 +427,12 @@ useEffect(() => {
   return () => {
     isCancelled = true;
     if (qrRef.current) {
-      qrRef.current.stop().catch(() => {});
-      qrRef.current.clear().catch(() => {});
+      try {
+        qrRef.current.stop();
+      } catch (e) {}
+      try {
+        qrRef.current.clear();
+      } catch (e) {}
       qrRef.current = null;
     }
   };
@@ -747,8 +765,12 @@ const reduceTeam2 = () => {
     <button
   onClick={async () => {
     if (qrRef.current) {
-      await qrRef.current.stop().catch(() => {});
-      await qrRef.current.clear().catch(() => {});
+      try {
+        await qrRef.current.stop();
+      } catch (e) {}
+      try {
+        await qrRef.current.clear();
+      } catch (e) {}
       qrRef.current = null;
     }
     scanTargetRef.current = null;
@@ -770,8 +792,12 @@ const reduceTeam2 = () => {
   onClick={async () => {
     // pastikan scanner & menu tertutup saat match di-finish
     if (qrRef.current) {
-      await qrRef.current.stop().catch(() => {});
-      await qrRef.current.clear().catch(() => {});
+      try {
+        await qrRef.current.stop();
+      } catch (e) {}
+      try {
+        await qrRef.current.clear();
+      } catch (e) {}
       qrRef.current = null;
     }
 
@@ -850,8 +876,12 @@ const reduceTeam2 = () => {
       onClick={async () => {
         // tutup scanner manual tanpa menambah pemain
         if (qrRef.current) {
-          await qrRef.current.stop().catch(() => {});
-          await qrRef.current.clear().catch(() => {});
+          try {
+            await qrRef.current.stop();
+          } catch (e) {}
+          try {
+            await qrRef.current.clear();
+          } catch (e) {}
           qrRef.current = null;
         }
 
