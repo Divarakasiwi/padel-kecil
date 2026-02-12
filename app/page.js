@@ -351,6 +351,7 @@ const updateExtraCourtState = (id, updater) => {
         style={{
           position: "relative",
           marginBottom: "32px",
+          overflowX: "hidden",
         }}
       >
         <div
@@ -367,9 +368,9 @@ const updateExtraCourtState = (id, updater) => {
           <div
             style={{
               position: "relative",
-              minWidth: "320px",
-              maxWidth: "320px",
-              flex: "0 0 320px",
+              minWidth: "420px",
+              maxWidth: "420px",
+              flex: "0 0 420px",
             }}
           >
             <CourtCard
@@ -388,9 +389,9 @@ const updateExtraCourtState = (id, updater) => {
               key={court.id}
               style={{
                 position: "relative",
-                minWidth: "320px",
-                maxWidth: "320px",
-                flex: "0 0 320px",
+                minWidth: "420px",
+                maxWidth: "420px",
+                flex: "0 0 420px",
               }}
             >
               {/* Tombol X hapus court (hanya jika kosong & tidak finished) akan dicek di handler */}
@@ -431,9 +432,9 @@ const updateExtraCourtState = (id, updater) => {
           {/* ADD COURT PLACEHOLDER */}
           <div
             style={{
-              minWidth: "320px",
-              maxWidth: "320px",
-              flex: "0 0 320px",
+              minWidth: "420px",
+              maxWidth: "420px",
+              flex: "0 0 420px",
               background: "#0B0B0B",
               borderRadius: "18px",
               border: "2px dashed #4FD1C5",
