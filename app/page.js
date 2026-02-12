@@ -321,64 +321,67 @@ useEffect(() => {
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         async (decodedText) => {
-  if (isCancelled) return;
+          if (isCancelled) return;
 
-  const playerId = decodedText.trim();
+          const playerId = decodedText.trim();
+          console.log("[QR] decoded:", decodedText, "->", playerId);
 
-  // ⬇️ JANGAN STOP DI SINI
+          if (activePlayerIdsRef.current.has(playerId)) {
+            alert("Player ini sedang bermain di tempat lain");
+            setShowScanner(false);
+            scanTargetRef.current = null;
+            return;
+          }
 
-  if (activePlayerIdsRef.current.has(playerId)) {
-    alert("Player ini sedang bermain di tempat lain");
-    setShowScanner(false);
-    scanTargetRef.current = null;
-    return;
-  }
+          const ref = doc(db, "players", playerId);
+          const snap = await getDoc(ref);
 
-  const ref = doc(db, "players", playerId);
-  const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            alert("Player tidak ditemukan");
+            setShowScanner(false);
+            scanTargetRef.current = null;
+            return;
+          }
 
-  if (!snap.exists()) {
-    alert("Player tidak ditemukan");
-    setShowScanner(false);
-    scanTargetRef.current = null;
-    return;
-  }
+          setCourt((prev) => {
+            const target = scanTargetRef.current;
+            console.log("[QR] target slot:", target, "current court:", prev);
+            if (!target) return prev;
 
-  setCourt(prev => {
-    const target = scanTargetRef.current;
-    if (!target) return prev;
+            if (prev[target.teamKey].length >= 2) {
+              alert("Tim ini sudah penuh");
+              return prev;
+            }
 
-    if (prev[target.teamKey].length >= 2) {
-      alert("Tim ini sudah penuh");
-      return prev;
-    }
+            const next = {
+              ...prev,
+              [target.teamKey]: [
+                ...prev[target.teamKey],
+                {
+                  id: playerId,
+                  name: snap.data().name,
+                  isVIP: snap.data().isVIP || false,
+                  photoUrl: snap.data().photoUrl || "",
+                  badge: snap.data().badge || null,
+                  slot: SLOT_ORDER[target.slotIndex],
+                },
+              ],
+            };
 
-    return {
-      ...prev,
-      [target.teamKey]: [
-        ...prev[target.teamKey],
-        {
-          id: playerId,
-          name: snap.data().name,
-          isVIP: snap.data().isVIP || false,
-          photoUrl: snap.data().photoUrl || "",
-          badge: snap.data().badge || null,
-          slot: SLOT_ORDER[target.slotIndex],
-        },
-      ],
-    };
-  });
+            console.log("[QR] next court after add:", next);
+            return next;
+          });
 
-  activePlayerIdsRef.current.add(playerId);
+          activePlayerIdsRef.current.add(playerId);
 
-  // ✅ BARU DI SINI STOP KAMERA
-  await qrRef.current.stop();
-  await qrRef.current.clear();
-  qrRef.current = null;
+          // ✅ BARU DI SINI STOP KAMERA
+          await qrRef.current.stop();
+          await qrRef.current.clear();
+          qrRef.current = null;
 
-  setShowScanner(false);
-  scanTargetRef.current = null;
-}
+          setShowScanner(false);
+          scanTargetRef.current = null;
+        }
 
       );
     } catch (e) {
