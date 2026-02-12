@@ -200,20 +200,47 @@ export default function RegisterPage() {
           width: "100%",
           maxWidth: player ? "820px" : "460px",
           background: "#121212",
-          padding: "24px",
+          padding: player ? "28px 24px 24px" : "28px 24px 24px",
           borderRadius: "16px",
           border: "1px solid #222",
         }}
       >
         {!player ? (
           <>
-            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
+            <h2
+              style={{
+                marginBottom: "6px",
+                textAlign: "center",
+                fontSize: "22px",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+              }}
+            >
               Daftar Pemain
             </h2>
+            <p
+              style={{
+                marginBottom: "20px",
+                textAlign: "center",
+                fontSize: "12px",
+                color: "#A0AEC0",
+              }}
+            >
+              Isi data singkat dan ambil selfie yang jelas. Kartu akan dibuat otomatis.
+            </p>
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: "14px" }}>
-                <label>Kode (6 digit)</label>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    color: "#A0AEC0",
+                  }}
+                >
+                  Kode (6 digit)
+                </label>
                 <input
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
@@ -224,7 +251,16 @@ export default function RegisterPage() {
               </div>
 
               <div style={{ marginBottom: "14px" }}>
-                <label>Nama</label>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    color: "#A0AEC0",
+                  }}
+                >
+                  Nama
+                </label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -234,7 +270,16 @@ export default function RegisterPage() {
               </div>
 
               <div style={{ marginBottom: "14px" }}>
-                <label>Nomor HP</label>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    color: "#A0AEC0",
+                  }}
+                >
+                  Nomor HP
+                </label>
                 <input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -244,26 +289,86 @@ export default function RegisterPage() {
               </div>
 
               <div style={{ marginBottom: "18px" }}>
-                <label>Foto wajah</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ marginTop: "8px" }}
-                />
+                <label
+                  style={{
+                    fontSize: "12px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    color: "#A0AEC0",
+                  }}
+                >
+                  Foto wajah
+                </label>
+                <div
+                  style={{
+                    marginTop: "8px",
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    type="button"
+                    style={secondaryButtonStyle}
+                    onClick={() => {
+                      const input = document.getElementById("photo-input");
+                      if (input) {
+                        input.click();
+                      }
+                    }}
+                  >
+                    Ambil foto / pilih dari galeri
+                  </button>
+                  <input
+                    id="photo-input"
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
+                </div>
+                <p
+                  style={{
+                    marginTop: 6,
+                    fontSize: 11,
+                    color: "#718096",
+                  }}
+                >
+                  Gunakan kamera depan, pastikan wajah menghadap kamera dan terang.
+                </p>
                 {photoPreview && (
-                  <div style={{ marginTop: 10, textAlign: "center" }}>
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
                       style={{
-                        width: 96,
-                        height: 96,
-                        borderRadius: "50%",
-                        objectFit: "cover",
+                        width: 180,
+                        height: 180,
+                        borderRadius: "999px",
                         border: "2px solid #4FD1C5",
+                        boxShadow: "0 0 18px rgba(79,209,197,0.6)",
+                        overflow: "hidden",
+                        position: "relative",
+                        background:
+                          "radial-gradient(circle at 30% 20%, #4FD1C5 0, transparent 55%)",
                       }}
-                    />
+                    >
+                      <img
+                        src={photoPreview}
+                        alt="Preview"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -288,9 +393,27 @@ export default function RegisterPage() {
           </>
         ) : (
           <>
-            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
+            <h2
+              style={{
+                marginBottom: "6px",
+                textAlign: "center",
+                fontSize: "22px",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+              }}
+            >
               Kartu Pemain
             </h2>
+            <p
+              style={{
+                marginBottom: "20px",
+                textAlign: "center",
+                fontSize: "12px",
+                color: "#A0AEC0",
+              }}
+            >
+              Simpan gambar atau PDF kartu ini untuk dicetak seperti kartu debit.
+            </p>
 
             <div
               style={{
