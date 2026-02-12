@@ -632,31 +632,42 @@ onEmptySlotClick={openPlayerPicker}
     </div>
 
     <button
-
-    onTouchStart={(e) => {
-  e.currentTarget.style.transform = "scale(0.97)";
-}}
-onTouchEnd={(e) => {
-  e.currentTarget.style.transform = "scale(1)";
-}}
-
+      onTouchStart={(e) => {
+        e.currentTarget.style.transform = "scale(0.97)";
+      }}
+      onTouchEnd={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+      }}
       onClick={() => {
         const from = activePlayer.fromTeam;
         const to = from === "team1" ? "team2" : "team1";
-         const movingPlayer = {
-    id: activePlayer.player.id,
-    name: activePlayer.player.name,
-    slot: activePlayer.player.slot,
-  };
-    setCourt(prev => ({
-      ...prev,
-  [from]: prev[from].filter(p => p.id !== movingPlayer.id),
-  [to]: [...prev[to], movingPlayer],
-}));
-activePlayerIdsRef.current.delete(movingPlayer.id);
 
+        setCourt((prev) => {
+          const movingPlayer = prev[from].find(
+            (p) => p.id === activePlayer.player.id
+          );
 
+          if (!movingPlayer) return prev;
 
+          const fromPlayers = prev[from].filter(
+            (p) => p.id !== movingPlayer.id
+          );
+          const toPlayers = [...prev[to], movingPlayer];
+
+          return {
+            ...prev,
+            [from]: fromPlayers.map((p, i) => ({
+              ...p,
+              slot: SLOT_ORDER[i],
+            })),
+            [to]: toPlayers.map((p, i) => ({
+              ...p,
+              slot: SLOT_ORDER[i],
+            })),
+          };
+        });
+
+        // pemain tetap aktif di court ini, jadi tidak dihapus dari activePlayerIdsRef
         setActivePlayer(null);
       }}
       style={{
@@ -674,55 +685,34 @@ activePlayerIdsRef.current.delete(movingPlayer.id);
     </button>
 
     <button
-    onTouchStart={(e) => {
-  e.currentTarget.style.transform = "scale(0.97)";
-}}
-onTouchEnd={(e) => {
-  e.currentTarget.style.transform = "scale(1)";
-}}
+      onTouchStart={(e) => {
+        e.currentTarget.style.transform = "scale(0.97)";
+      }}
+      onTouchEnd={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+      }}
+      onClick={() => {
+        const from = activePlayer.fromTeam;
 
-onClick={() => {
-  const from = activePlayer.fromTeam;
-  const to = from === "team1" ? "team2" : "team1";
+        setCourt((prev) => {
+          const remainingPlayers = prev[from].filter(
+            (p) => p.id !== activePlayer.player.id
+          );
 
-  setCourt(prev => {
-    // === AMBIL PLAYER ASLI DARI STATE ===
-    const movingPlayer = prev[from].find(
-      p => p.id === activePlayer.player.id
-    );
+          return {
+            ...prev,
+            [from]: remainingPlayers.map((p, i) => ({
+              ...p,
+              slot: SLOT_ORDER[i],
+            })),
+          };
+        });
 
-    if (!movingPlayer) return prev;
-
-    // === SISAKAN TIM ASAL ===
-    const fromPlayers = prev[from].filter(
-      p => p.id !== movingPlayer.id
-    );
-
-    // === TAMBAH KE TIM TUJUAN ===
-    const toPlayers = [...prev[to], movingPlayer];
-
-    return {
-      ...prev,
-      [from]: fromPlayers.map((p, i) => ({
-        ...p,
-        slot: SLOT_ORDER[i],
-      })),
-      [to]: toPlayers.map((p, i) => ({
-        ...p,
-        slot: SLOT_ORDER[i],
-      })),
-    };
-  });
-
-
-  setActivePlayer(null);
-}}
-
-
-
-
-
-       style={{
+        // pemain benar-benar keluar dari court ini
+        activePlayerIdsRef.current.delete(activePlayer.player.id);
+        setActivePlayer(null);
+      }}
+      style={{
     height: "52px",
     borderRadius: "14px",
     border: "1px solid #553333",
@@ -777,9 +767,17 @@ onClick={() => {
 {isFinished && (
   <button
     onClick={() => {
-  activePlayerIdsRef.current.clear();
-  setCourt({ ...initialCourt });
-}}
+      // bersihkan semua state terkait court ini
+      activePlayerIdsRef.current.clear();
+      slotTargetRef.current = null;
+      scanTargetRef.current = null;
+      setActivePlayer(null);
+      setShowScanner(false);
+      setShowPlayerPicker(false);
+
+      // kembalikan court ke kondisi awal
+      setCourt({ ...initialCourt });
+    }}
 
     
     style={{
