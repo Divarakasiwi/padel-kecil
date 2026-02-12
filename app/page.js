@@ -96,6 +96,7 @@ export default function Dashboard() {
   });
   const [showStatusDetail, setShowStatusDetail] = useState(false);
   const [isSyncingMatches, setIsSyncingMatches] = useState(false);
+  const [pendingMatchesCount, setPendingMatchesCount] = useState(0);
 
   // ====== FUNGSI SYNC MATCH QUEUE KE FIRESTORE ======
   const trySyncMatchQueue = async () => {
@@ -131,6 +132,9 @@ export default function Dashboard() {
     if (changed) {
       saveMatchQueue(queue);
     }
+
+    // update jumlah pending
+    setPendingMatchesCount(queue.filter((m) => !m.synced).length);
 
     setIsSyncingMatches(false);
 
@@ -235,6 +239,9 @@ const handleMatchFinished = (result) => {
 
   saveMatchQueue([...queue, item]);
 
+  // update jumlah pending lokal
+  setPendingMatchesCount(queue.filter((m) => !m.synced).length + 1);
+
   setSystemStatus((prev) => ({
     ...prev,
     level: "syncing",
@@ -336,6 +343,7 @@ const updateExtraCourtState = (id, updater) => {
         status={systemStatus}
         showDetail={showStatusDetail}
         onToggleDetail={() => setShowStatusDetail((v) => !v)}
+        pendingCount={pendingMatchesCount}
       />
 
       {/* COURTS – HORIZONTAL SCROLL */}
@@ -346,27 +354,45 @@ const updateExtraCourtState = (id, updater) => {
         }}
       >
         <div
+          className="court-scroll"
           style={{
             display: "flex",
+            flexWrap: "nowrap",
             gap: "20px",
             overflowX: "auto",
-            paddingBottom: "8px",
-            paddingRight: "32px",
+            paddingBottom: "4px",
           }}
         >
           {/* COURT 1 (FIXED) */}
-          <CourtCard
-            title="COURT 1"
-            court={court1}
-            setCourt={setCourt1}
-            initialCourt={initialCourtState}
-            reportStatus={setSystemStatus}
-            onMatchFinished={handleMatchFinished}
-          />
+          <div
+            style={{
+              position: "relative",
+              minWidth: "320px",
+              maxWidth: "320px",
+              flex: "0 0 320px",
+            }}
+          >
+            <CourtCard
+              title="COURT 1"
+              court={court1}
+              setCourt={setCourt1}
+              initialCourt={initialCourtState}
+              reportStatus={setSystemStatus}
+              onMatchFinished={handleMatchFinished}
+            />
+          </div>
 
           {/* EXTRA COURTS */}
           {extraCourts.map((court) => (
-            <div key={court.id} style={{ position: "relative" }}>
+            <div
+              key={court.id}
+              style={{
+                position: "relative",
+                minWidth: "320px",
+                maxWidth: "320px",
+                flex: "0 0 320px",
+              }}
+            >
               {/* Tombol X hapus court (hanya jika kosong & tidak finished) akan dicek di handler */}
               <button
                 onClick={() => handleRemoveCourt(court.id)}
@@ -405,8 +431,9 @@ const updateExtraCourtState = (id, updater) => {
           {/* ADD COURT PLACEHOLDER */}
           <div
             style={{
-              minWidth: "260px",
-              maxWidth: "260px",
+              minWidth: "320px",
+              maxWidth: "320px",
+              flex: "0 0 320px",
               background: "#0B0B0B",
               borderRadius: "18px",
               border: "2px dashed #4FD1C5",
@@ -1501,11 +1528,12 @@ function ScoreControl({ label, onClick, disabled, color }) {
 }
 
 // Status indikator kecil di pojok (warna saja, klik untuk detail)
-function StatusIndicator({ status, showDetail, onToggleDetail }) {
+function StatusIndicator({ status, showDetail, onToggleDetail, pendingCount }) {
   const baseSize = 14;
   let color = "#4FD1C5";
   if (status.level === "warning") color = "#ECC94B";
   if (status.level === "error") color = "#F56565";
+  if (status.level === "syncing") color = "#0054A6"; // biru ala BCA
 
   return (
     <div
@@ -1530,6 +1558,8 @@ function StatusIndicator({ status, showDetail, onToggleDetail }) {
           justifyContent: "center",
           boxShadow: "0 0 8px rgba(0,0,0,0.8)",
           cursor: "pointer",
+          padding: status.level === "syncing" ? "0 10px" : undefined,
+          gap: status.level === "syncing" ? 6 : 0,
         }}
       >
         <span
@@ -1541,6 +1571,18 @@ function StatusIndicator({ status, showDetail, onToggleDetail }) {
             boxShadow: `0 0 12px ${color}AA`,
           }}
         />
+        {status.level === "syncing" && (
+          <span
+            style={{
+              fontSize: 10,
+              color: "#E2E8F0",
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            {pendingCount > 0 ? `KIRIM ${pendingCount}` : "KIRIM"}
+          </span>
+        )}
       </button>
 
       {showDetail && (
@@ -1710,5 +1752,14 @@ function InfoRow({ left, right, badge }) {
       0 0 12px rgba(255,255,255,0.25),
       0 0 24px rgba(255,255,255,0.25);
   }
+}
+
+/* sembunyikan scrollbar horizontal courts (tetap bisa di-scroll) */
+.court-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge lama */
+}
+.court-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/WebKit */
 }
 `}</style>
