@@ -334,6 +334,14 @@ useEffect(() => {
 
           if (activePlayerIdsRef.current.has(playerId)) {
             alert("Player ini sedang bermain di tempat lain");
+
+            // pastikan scanner dimatikan dengan benar
+            if (qrRef.current) {
+              await qrRef.current.stop().catch(() => {});
+              await qrRef.current.clear().catch(() => {});
+              qrRef.current = null;
+            }
+
             setShowScanner(false);
             scanTargetRef.current = null;
             return;
@@ -344,6 +352,13 @@ useEffect(() => {
 
           if (!snap.exists()) {
             alert("Player tidak ditemukan");
+
+            if (qrRef.current) {
+              await qrRef.current.stop().catch(() => {});
+              await qrRef.current.clear().catch(() => {});
+              qrRef.current = null;
+            }
+
             setShowScanner(false);
             scanTargetRef.current = null;
             return;
@@ -832,11 +847,17 @@ const reduceTeam2 = () => {
     <div id="qr-reader" style={{ width: "100%" }} />
 
     <button
-      onClick={() => {
+      onClick={async () => {
+        // tutup scanner manual tanpa menambah pemain
+        if (qrRef.current) {
+          await qrRef.current.stop().catch(() => {});
+          await qrRef.current.clear().catch(() => {});
+          qrRef.current = null;
+        }
+
         setShowScanner(false);
-       scanTargetRef.current = null;
-
-
+        scanTargetRef.current = null;
+        slotTargetRef.current = null;
       }}
       style={{ marginTop: 12 }}
     >
