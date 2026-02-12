@@ -66,21 +66,12 @@ function saveMatchQueue(queue) {
   }
 }
 
-const initialCourt1 = {
-    team1: [],
-    team2: [],
-
-    score1: 0,
-    score2: 0,
-    finished: false,
-};
-
-const initialCourt2 = {
-    team1: [],
-    team2: [],
-    score1: 0,
-    score2: 0,
-    finished: false,
+const initialCourtState = {
+  team1: [],
+  team2: [],
+  score1: 0,
+  score2: 0,
+  finished: false,
 };
 export default function Dashboard() {
   const [now, setNow] = useState(new Date());
@@ -94,8 +85,8 @@ export default function Dashboard() {
     [storageDayKey]
   );
 
-  const [court1, setCourt1] = useState(initialCourt1);
-  const [court2, setCourt2] = useState(initialCourt2);
+  const [court1, setCourt1] = useState(initialCourtState);
+  const [extraCourts, setExtraCourts] = useState([]); // COURT 2–8
   const [mounted, setMounted] = useState(false);
 
   // status kecil di pojok (online/offline/error/sync)
@@ -208,6 +199,9 @@ useEffect(() => {
     if (parsed && parsed.court1) {
       setCourt1(parsed.court1);
     }
+    if (parsed && Array.isArray(parsed.extraCourts)) {
+      setExtraCourts(parsed.extraCourts);
+    }
   } catch (e) {
     console.error("Gagal load state court dari storage", e);
   }
@@ -222,12 +216,13 @@ useEffect(() => {
     const next = {
       ...base,
       court1,
+      extraCourts,
     };
     localStorage.setItem(storageKey, JSON.stringify(next));
   } catch (e) {
     console.error("Gagal simpan state court ke storage", e);
   }
-}, [court1, storageKey]);
+}, [court1, extraCourts, storageKey]);
 
 // ===== HANDLE FINISH MATCH: SIMPAN KE ANTRIAN MATCH =====
 const handleMatchFinished = (result) => {
@@ -251,7 +246,54 @@ const handleMatchFinished = (result) => {
   trySyncMatchQueue();
 };
 
- 
+// ===== COURT MANAGEMENT (MULTI COURT) =====
+const canAddMoreCourts = extraCourts.length < 7; // Court 1 + 7 = 8 total
+
+const handleAddCourt = () => {
+  if (!canAddMoreCourts) {
+    alert("Maksimal 8 court per sesi.");
+    return;
+  }
+
+  const nextIndex = extraCourts.length + 2; // COURT 2, 3, ...
+  const id = `court-${nextIndex}`;
+
+  setExtraCourts((prev) => [
+    ...prev,
+    {
+      id,
+      title: `COURT ${nextIndex}`,
+      state: { ...initialCourtState },
+    },
+  ]);
+};
+
+const handleRemoveCourt = (id) => {
+  setExtraCourts((prev) =>
+    prev.filter((court) => {
+      if (court.id !== id) return true;
+      const s = court.state;
+      const isEmpty =
+        s.team1.length === 0 && s.team2.length === 0 && !s.finished;
+      // hanya hapus jika kosong & tidak finished
+      return !isEmpty;
+    })
+  );
+};
+
+const updateExtraCourtState = (id, updater) => {
+  setExtraCourts((prev) =>
+    prev.map((court) =>
+      court.id === id
+        ? {
+            ...court,
+            state: typeof updater === "function" ? updater(court.state) : updater,
+          }
+        : court
+    )
+  );
+};
+
   /* =====================
      DATA RINGAN (HOST)
   ===================== */
@@ -296,66 +338,132 @@ const handleMatchFinished = (result) => {
         onToggleDetail={() => setShowStatusDetail((v) => !v)}
       />
 
-      {/* COURTS */}
+      {/* COURTS – HORIZONTAL SCROLL */}
       <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-    marginBottom: "32px",
-  }}
->
-  {/* COURT 1 */}
-  <CourtCard
-    title="COURT 1"
-    court={court1}
-    setCourt={setCourt1}
-    initialCourt={initialCourt1}
-    reportStatus={setSystemStatus}
-    onMatchFinished={handleMatchFinished}
-  />
+        style={{
+          position: "relative",
+          marginBottom: "32px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            overflowX: "auto",
+            paddingBottom: "8px",
+            paddingRight: "32px",
+          }}
+        >
+          {/* COURT 1 (FIXED) */}
+          <CourtCard
+            title="COURT 1"
+            court={court1}
+            setCourt={setCourt1}
+            initialCourt={initialCourtState}
+            reportStatus={setSystemStatus}
+            onMatchFinished={handleMatchFinished}
+          />
 
-  {/* ADD COURT PLACEHOLDER */}
-  <div
-    style={{
-      background: "#0B0B0B",
-      borderRadius: "18px",
-      border: "2px dashed #4FD1C5",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: "320px",
-      cursor: "pointer",
+          {/* EXTRA COURTS */}
+          {extraCourts.map((court) => (
+            <div key={court.id} style={{ position: "relative" }}>
+              {/* Tombol X hapus court (hanya jika kosong & tidak finished) akan dicek di handler */}
+              <button
+                onClick={() => handleRemoveCourt(court.id)}
+                title="Hapus court (hanya jika kosong & tidak aktif)"
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  zIndex: 10,
+                  width: 22,
+                  height: 22,
+                  borderRadius: "999px",
+                  border: "1px solid #553333",
+                  background: "rgba(26,15,15,0.9)",
+                  color: "#FF6B6B",
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
 
-      /* ✨ GLOW EFFECT */
-      boxShadow: `
-        0 0 12px rgba(79,209,197,0.4),
-        inset 0 0 18px rgba(79,209,197,0.25)
-      `,
-      transition: "all 0.25s ease",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.boxShadow =
-        "0 0 22px rgba(79,209,197,0.8), inset 0 0 26px rgba(79,209,197,0.45)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.boxShadow =
-        "0 0 12px rgba(79,209,197,0.4), inset 0 0 18px rgba(79,209,197,0.25)";
-    }}
-  >
-    <div
-      style={{
-        fontSize: "64px",
-        fontWeight: 700,
-        color: "#4FD1C5",
-        textShadow: "0 0 18px rgba(79,209,197,0.9)",
-        userSelect: "none",
-      }}
-    >
-      +
-    </div>
-  </div>
-</div>
+              <CourtCard
+                title={court.title}
+                court={court.state}
+                setCourt={(updater) =>
+                  updateExtraCourtState(court.id, updater)
+                }
+                initialCourt={initialCourtState}
+                reportStatus={setSystemStatus}
+                onMatchFinished={handleMatchFinished}
+              />
+            </div>
+          ))}
+
+          {/* ADD COURT PLACEHOLDER */}
+          <div
+            style={{
+              minWidth: "260px",
+              maxWidth: "260px",
+              background: "#0B0B0B",
+              borderRadius: "18px",
+              border: "2px dashed #4FD1C5",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "320px",
+              cursor: canAddMoreCourts ? "pointer" : "not-allowed",
+              boxShadow: `
+                0 0 12px rgba(79,209,197,0.4),
+                inset 0 0 18px rgba(79,209,197,0.25)
+              `,
+              transition: "all 0.25s ease",
+              opacity: canAddMoreCourts ? 1 : 0.4,
+            }}
+            onClick={canAddMoreCourts ? handleAddCourt : undefined}
+            onMouseEnter={(e) => {
+              if (!canAddMoreCourts) return;
+              e.currentTarget.style.boxShadow =
+                "0 0 22px rgba(79,209,197,0.8), inset 0 0 26px rgba(79,209,197,0.45)";
+            }}
+            onMouseLeave={(e) => {
+              if (!canAddMoreCourts) return;
+              e.currentTarget.style.boxShadow =
+                "0 0 12px rgba(79,209,197,0.4), inset 0 0 18px rgba(79,209,197,0.25)";
+            }}
+          >
+            <div
+              style={{
+                fontSize: "64px",
+                fontWeight: 700,
+                color: "#4FD1C5",
+                textShadow: "0 0 18px rgba(79,209,197,0.9)",
+                userSelect: "none",
+              }}
+            >
+              +
+            </div>
+          </div>
+        </div>
+
+        {/* VISUAL HINT: GRADIENT DI SISI KANAN */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 12,
+            width: 40,
+            pointerEvents: "none",
+            background:
+              extraCourts.length >= 0
+                ? "linear-gradient(to left, #0B0B0B, transparent)"
+                : "none",
+          }}
+        />
+      </div>
 
       
 
