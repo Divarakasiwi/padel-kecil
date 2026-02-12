@@ -620,6 +620,7 @@ const [activePlayer, setActivePlayer] = useState(null);
 const activePlayerIdsRef = useRef(new Set());
 
 const [showScanner, setShowScanner] = useState(false);
+const [showFinishConfirm, setShowFinishConfirm] = useState(false);
 
 // sinkronkan daftar pemain aktif dengan state court (penting untuk restore setelah refresh)
 useEffect(() => {
@@ -847,16 +848,68 @@ const reduceTeam2 = () => {
 };
 
 
+const needsAttention = isFinished; // court yang sudah selesai tapi belum di-reset
+
+const performFinishMatch = async () => {
+  // pastikan scanner & menu tertutup saat match di-finish
+  if (qrRef.current) {
+    try {
+      await qrRef.current.stop();
+    } catch (e) {}
+    try {
+      await qrRef.current.clear();
+    } catch (e) {}
+    qrRef.current = null;
+  }
+
+  scanTargetRef.current = null;
+  slotTargetRef.current = null;
+  setActivePlayer(null);
+  setShowScanner(false);
+  setShowPlayerPicker(false);
+
+  // kunci skor sebagai hasil akhir
+  setCourt((prev) => ({ ...prev, finished: true }));
+
+  // kirim hasil match ke handler di atas (Dashboard)
+  if (typeof window !== "undefined") {
+    const result = {
+      dayKey: getTodayKey(),
+      finishedAt: new Date().toISOString(),
+      courtName: title,
+      score1: court.score1,
+      score2: court.score2,
+      winner:
+        court.score1 > court.score2
+          ? "team1"
+          : court.score2 > court.score1
+          ? "team2"
+          : "draw",
+      team1PlayerIds: court.team1.map((p) => p.id),
+      team2PlayerIds: court.team2.map((p) => p.id),
+    };
+    reportStatus?.({
+      level: "syncing",
+      message:
+        "Hasil match tersimpan di perangkat dan sedang dikirim ke server (jika koneksi tersedia).",
+    });
+    onMatchFinished?.(result);
+  }
+};
+
   return (
-    
     <div
       style={{
         background: "#121212",
         borderRadius: "18px",
         padding: "20px",
-        border: "1px solid #222",
-        position: "relative",  
-        overflow: "hidden",   
+        border: needsAttention ? "1px solid #D6C7A1" : "1px solid #222",
+        position: "relative",
+        overflow: "hidden",
+        boxShadow: needsAttention
+          ? "0 0 18px rgba(214,199,161,0.45)"
+          : "0 0 10px rgba(0,0,0,0.6)",
+        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
       }}
     >
       {/* HEADER */}
@@ -1148,51 +1201,9 @@ const reduceTeam2 = () => {
 
 <button
   disabled={!canFinish}
-  onClick={async () => {
-    // pastikan scanner & menu tertutup saat match di-finish
-    if (qrRef.current) {
-      try {
-        await qrRef.current.stop();
-      } catch (e) {}
-      try {
-        await qrRef.current.clear();
-      } catch (e) {}
-      qrRef.current = null;
-    }
-
-    scanTargetRef.current = null;
-    slotTargetRef.current = null;
-    setActivePlayer(null);
-    setShowScanner(false);
-    setShowPlayerPicker(false);
-
-    // kunci skor sebagai hasil akhir
-    setCourt((prev) => ({ ...prev, finished: true }));
-
-    // kirim hasil match ke handler di atas (Dashboard)
-    if (typeof window !== "undefined") {
-      const result = {
-        dayKey: getTodayKey(),
-        finishedAt: new Date().toISOString(),
-        courtName: title,
-        score1: court.score1,
-        score2: court.score2,
-        winner:
-          court.score1 > court.score2
-            ? "team1"
-            : court.score2 > court.score1
-            ? "team2"
-            : "draw",
-        team1PlayerIds: court.team1.map((p) => p.id),
-        team2PlayerIds: court.team2.map((p) => p.id),
-      };
-      reportStatus?.({
-        level: "syncing",
-        message:
-          "Hasil match tersimpan di perangkat dan sedang dikirim ke server (jika koneksi tersedia).",
-      });
-      onMatchFinished?.(result);
-    }
+  onClick={() => {
+    if (!canFinish) return;
+    setShowFinishConfirm(true);
   }}
 
   style={{
@@ -1280,6 +1291,93 @@ const reduceTeam2 = () => {
   
   
 
+  </div>
+)}
+{showFinishConfirm && (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background: "rgba(0,0,0,0.72)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 40,
+    }}
+  >
+    <div
+      style={{
+        background: "#111",
+        padding: 20,
+        borderRadius: 16,
+        border: "1px solid #333",
+        boxShadow: "0 18px 40px rgba(0,0,0,0.8)",
+        width: "100%",
+        maxWidth: 280,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          marginBottom: 8,
+          textAlign: "center",
+        }}
+      >
+        Finish match?
+      </div>
+      <div
+        style={{
+          fontSize: 12,
+          color: "#A0AEC0",
+          textAlign: "center",
+          marginBottom: 16,
+        }}
+      >
+        Skor akan dikunci dan hasil match disimpan.
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+        }}
+      >
+        <button
+          onClick={() => setShowFinishConfirm(false)}
+          style={{
+            flex: 1,
+            padding: "8px 0",
+            borderRadius: 10,
+            border: "1px solid #2D3748",
+            background: "#1A202C",
+            color: "#CBD5F5",
+            fontSize: 12,
+            cursor: "pointer",
+          }}
+        >
+          Batal
+        </button>
+        <button
+          onClick={async () => {
+            setShowFinishConfirm(false);
+            await performFinishMatch();
+          }}
+          style={{
+            flex: 1,
+            padding: "8px 0",
+            borderRadius: 10,
+            border: "1px solid #4FD1C5",
+            background: "#4FD1C5",
+            color: "#000",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Ya, simpan
+        </button>
+      </div>
+    </div>
   </div>
 )}
 {showPlayerPicker && (
