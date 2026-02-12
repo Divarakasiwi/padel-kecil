@@ -438,7 +438,14 @@ function Header({ now,mounted }) {
   );
 }
 
-function CourtCard({ title, court, setCourt, initialCourt, reportStatus }) {
+function CourtCard({
+  title,
+  court,
+  setCourt,
+  initialCourt,
+  reportStatus,
+  onMatchFinished,
+}) {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
 
   const [allPlayers, setAllPlayers] = useState([]);
