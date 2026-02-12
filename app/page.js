@@ -489,22 +489,18 @@ const reduceTeam2 = () => {
       {/* TEAMS */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
         <TeamColumn 
-        title="TEAM 1" 
-        teamKey="team1"
-        players={court.team1} 
-        color="#4FD1C5" 
-        isWinner={winner === "team1"}
-        onSelect={(player) =>
-    setActivePlayer({ player, fromTeam: "team1" })}
-  setCourt={setCourt}
-  
-          
-
- 
-
-  isFinished={isFinished}
-onEmptySlotClick={openPlayerPicker}
-    />
+          title="TEAM 1" 
+          teamKey="team1"
+          players={court.team1} 
+          color="#4FD1C5" 
+          isWinner={winner === "team1"}
+          onSelect={(player) =>
+            setActivePlayer({ player, fromTeam: "team1" })
+          }
+          setCourt={setCourt}
+          isFinished={isFinished}
+          onEmptySlotClick={openScannerForSlot}
+        />
         <TeamColumn 
         title="TEAM 2" 
         teamKey="team2"
@@ -749,7 +745,23 @@ onEmptySlotClick={openPlayerPicker}
 
 <button
   disabled={!canFinish}
-  onClick={() => setCourt(prev => ({ ...prev, finished: true }))}
+  onClick={async () => {
+    // pastikan scanner & menu tertutup saat match di-finish
+    if (qrRef.current) {
+      await qrRef.current.stop().catch(() => {});
+      await qrRef.current.clear().catch(() => {});
+      qrRef.current = null;
+    }
+
+    scanTargetRef.current = null;
+    slotTargetRef.current = null;
+    setActivePlayer(null);
+    setShowScanner(false);
+    setShowPlayerPicker(false);
+
+    // kunci skor sebagai hasil akhir
+    setCourt((prev) => ({ ...prev, finished: true }));
+  }}
 
   style={{
     width: "100%",
