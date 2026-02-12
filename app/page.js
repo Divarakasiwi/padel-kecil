@@ -3,7 +3,7 @@ console.log("🔥 PAGE.JS TERBARU AKTIF 🔥");
 import { collection, getDocs } from "firebase/firestore";
 
 import { Html5Qrcode } from "html5-qrcode";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
 const SLOT_ORDER = ["A", "B", "C", "D"];
 const SLOT_COLORS = {
@@ -33,6 +33,14 @@ const SLOT_COLORS = {
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
+// ===== HELPER: key harian untuk menyimpan state lokal =====
+function getTodayKey() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`; // contoh: 2026-02-12
+}
 
 const initialCourt1 = {
     team1: [],
@@ -56,10 +64,22 @@ export default function Dashboard() {
      COURT STATE
   ===================== */
 
-  
-const [court1, setCourt1] = useState(initialCourt1);
-const [court2, setCourt2] = useState(initialCourt2);
-const [mounted, setMounted] = useState(false);
+  const storageDayKey = useMemo(() => getTodayKey(), []);
+  const storageKey = useMemo(
+    () => `padelkecil:courts:${storageDayKey}`,
+    [storageDayKey]
+  );
+
+  const [court1, setCourt1] = useState(initialCourt1);
+  const [court2, setCourt2] = useState(initialCourt2);
+  const [mounted, setMounted] = useState(false);
+
+  // status kecil di pojok (online/offline/error)
+  const [systemStatus, setSystemStatus] = useState({
+    level: "ok", // "ok" | "warning" | "error"
+    message: "Semua sistem normal",
+  });
+  const [showStatusDetail, setShowStatusDetail] = useState(false);
  
 
 
@@ -73,6 +93,74 @@ useEffect(() => {
   const t = setInterval(() => setNow(new Date()), 1000);
   return () => clearInterval(t);
 }, []);
+
+// ===== STATUS: ONLINE / OFFLINE DETECTION =====
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const applyOnlineState = () => {
+    setSystemStatus((prev) => ({
+      ...prev,
+      level: "ok",
+      message: "Online – data siap disinkronkan ke server.",
+    }));
+  };
+
+  const applyOfflineState = () => {
+    setSystemStatus((prev) => ({
+      ...prev,
+      level: "warning",
+      message:
+        "Offline – data tersimpan aman di perangkat dan akan disinkronkan saat koneksi kembali.",
+    }));
+  };
+
+  if (navigator.onLine) {
+    applyOnlineState();
+  } else {
+    applyOfflineState();
+  }
+
+  window.addEventListener("online", applyOnlineState);
+  window.addEventListener("offline", applyOfflineState);
+
+  return () => {
+    window.removeEventListener("online", applyOnlineState);
+    window.removeEventListener("offline", applyOfflineState);
+  };
+}, []);
+
+// ===== LOAD STATE COURT DARI STORAGE LOKAL (per hari) =====
+useEffect(() => {
+  try {
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return;
+
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.court1) {
+      setCourt1(parsed.court1);
+    }
+  } catch (e) {
+    console.error("Gagal load state court dari storage", e);
+  }
+}, [storageKey]);
+
+// ===== SIMPAN STATE COURT KE STORAGE LOKAL SETIAP PERUBAHAN =====
+useEffect(() => {
+  try {
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem(storageKey);
+    const base = raw ? JSON.parse(raw) : {};
+    const next = {
+      ...base,
+      court1,
+    };
+    localStorage.setItem(storageKey, JSON.stringify(next));
+  } catch (e) {
+    console.error("Gagal simpan state court ke storage", e);
+  }
+}, [court1, storageKey]);
 
  
   /* =====================
@@ -106,10 +194,18 @@ useEffect(() => {
         color: "#fff",
         padding: "24px",
         fontFamily: "Inter, system-ui, Arial, sans-serif",
+        position: "relative",
       }}
     >
       {/* HEADER */}
       <Header now={now} mounted={mounted} />
+
+      {/* STATUS INDICATOR KECIL DI POJOK */}
+      <StatusIndicator
+        status={systemStatus}
+        showDetail={showStatusDetail}
+        onToggleDetail={() => setShowStatusDetail((v) => !v)}
+      />
 
       {/* COURTS */}
       <div
@@ -126,7 +222,7 @@ useEffect(() => {
     court={court1}
     setCourt={setCourt1}
     initialCourt={initialCourt1}
-    
+    reportStatus={setSystemStatus}
   />
 
   {/* ADD COURT PLACEHOLDER */}
@@ -252,7 +348,7 @@ function Header({ now,mounted }) {
   );
 }
 
-function CourtCard({ title, court, setCourt, initialCourt }) {
+function CourtCard({ title, court, setCourt, initialCourt, reportStatus }) {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
 
   const [allPlayers, setAllPlayers] = useState([]);
@@ -291,6 +387,14 @@ const [activePlayer, setActivePlayer] = useState(null);
 const activePlayerIdsRef = useRef(new Set());
 
 const [showScanner, setShowScanner] = useState(false);
+
+// sinkronkan daftar pemain aktif dengan state court (penting untuk restore setelah refresh)
+useEffect(() => {
+  const ids = new Set();
+  court.team1.forEach((p) => ids.add(p.id));
+  court.team2.forEach((p) => ids.add(p.id));
+  activePlayerIdsRef.current = ids;
+}, [court.team1, court.team2]);
 useEffect(() => {
   const fetchPlayers = async () => {
     const snap = await getDocs(collection(db, "players"));
@@ -348,6 +452,12 @@ useEffect(() => {
 
             setShowScanner(false);
             scanTargetRef.current = null;
+
+            reportStatus?.({
+              level: "warning",
+              message:
+                "Player sudah aktif di court ini. Gunakan menu Player Action jika ingin memindahkan atau mengeluarkan pemain.",
+            });
             return;
           }
 
@@ -369,6 +479,12 @@ useEffect(() => {
 
             setShowScanner(false);
             scanTargetRef.current = null;
+
+            reportStatus?.({
+              level: "warning",
+              message:
+                "QR tidak cocok dengan data player di server. Pastikan QR sesuai dengan data registrasi.",
+            });
             return;
           }
 
@@ -417,8 +533,18 @@ useEffect(() => {
         }
 
       );
+      // bila berhasil tambah pemain, status kembali normal
+      reportStatus?.({
+        level: "ok",
+        message: "Scanner berjalan normal dan pemain berhasil ditambahkan.",
+      });
     } catch (e) {
       console.error(e);
+      reportStatus?.({
+        level: "error",
+        message:
+          "Scanner mengalami error. Jika masalah berlanjut, silakan refresh – data match aman karena tersimpan di perangkat.",
+      });
     }
   };
 
@@ -1141,6 +1267,88 @@ function ScoreControl({ label, onClick, disabled, color }) {
     >
       {label}
     </button>
+  );
+}
+
+// Status indikator kecil di pojok (warna saja, klik untuk detail)
+function StatusIndicator({ status, showDetail, onToggleDetail }) {
+  const baseSize = 14;
+  let color = "#4FD1C5";
+  if (status.level === "warning") color = "#ECC94B";
+  if (status.level === "error") color = "#F56565";
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        right: 16,
+        bottom: 16,
+        zIndex: 100,
+      }}
+    >
+      <button
+        onClick={onToggleDetail}
+        title={status.message}
+        style={{
+          width: baseSize * 2,
+          height: baseSize * 2,
+          borderRadius: "999px",
+          border: "1px solid #222",
+          background: "#0B0B0B",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 0 8px rgba(0,0,0,0.8)",
+          cursor: "pointer",
+        }}
+      >
+        <span
+          style={{
+            width: baseSize,
+            height: baseSize,
+            borderRadius: "999px",
+            background: color,
+            boxShadow: `0 0 12px ${color}AA`,
+          }}
+        />
+      </button>
+
+      {showDetail && (
+        <div
+          style={{
+            marginTop: 8,
+            maxWidth: 260,
+            padding: 10,
+            borderRadius: 10,
+            background: "#111",
+            border: "1px solid #333",
+            fontSize: 11,
+            color: "#E2E8F0",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.7)",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 600,
+              marginBottom: 4,
+              color:
+                status.level === "error"
+                  ? "#FEB2B2"
+                  : status.level === "warning"
+                  ? "#F6E05E"
+                  : "#9AE6B4",
+            }}
+          >
+            {status.level === "error"
+              ? "Perlu perhatian"
+              : status.level === "warning"
+              ? "Perlu dicek"
+              : "Aman"}
+          </div>
+          <div style={{ lineHeight: 1.4 }}>{status.message}</div>
+        </div>
+      )}
+    </div>
   );
 }
 
