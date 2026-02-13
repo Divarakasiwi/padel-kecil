@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 const inputStyle = {
   width: "100%",
@@ -108,6 +110,71 @@ export default function RegisterPage() {
 
   const frontRef = useRef(null);
   const backRef = useRef(null);
+  const cardsWrapperRef = useRef(null);
+  const [downloading, setDownloading] = useState(""); // "pdf" | "jpeg" | ""
+
+  const handleDownloadJPEG = async () => {
+    if (!cardsWrapperRef.current || !player) return;
+    setDownloading("jpeg");
+    try {
+      const canvas = await html2canvas(cardsWrapperRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#f0f2f5",
+        logging: false,
+      });
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `kartu-pemain-${player.name.replace(/\s+/g, "-")}.jpg`;
+      a.click();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloading("");
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!frontRef.current || !backRef.current || !player) return;
+    setDownloading("pdf");
+    try {
+      const [frontCanvas, backCanvas] = await Promise.all([
+        html2canvas(frontRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: null,
+          logging: false,
+        }),
+        html2canvas(backRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: null,
+          logging: false,
+        }),
+      ]);
+
+      const frontData = frontCanvas.toDataURL("image/jpeg", 0.92);
+      const backData = backCanvas.toDataURL("image/jpeg", 0.92);
+
+      // Satu halaman landscape: dua kartu berdampingan
+      const pdf = new jsPDF("l", "mm", "a4");
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 12;
+      const cardW = (pageW - margin * 3) / 2;
+      const cardH = cardW / 1.586;
+
+      pdf.addImage(frontData, "JPEG", margin, (pageH - cardH) / 2, cardW, cardH);
+      pdf.addImage(backData, "JPEG", margin * 2 + cardW, (pageH - cardH) / 2, cardW, cardH);
+
+      pdf.save(`kartu-pemain-${player.name.replace(/\s+/g, "-")}.pdf`);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloading("");
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -193,12 +260,14 @@ export default function RegisterPage() {
     }
   };
 
+  const isCardView = !!player;
+
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "#0B0B0B",
-        color: "#fff",
+        background: isCardView ? "#f0f2f5" : "#0B0B0B",
+        color: isCardView ? "#1a1a1a" : "#fff",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -209,10 +278,11 @@ export default function RegisterPage() {
         style={{
           width: "100%",
           maxWidth: player ? "820px" : "460px",
-          background: "#121212",
+          background: isCardView ? "#ffffff" : "#121212",
           padding: player ? "28px 24px 24px" : "28px 24px 24px",
           borderRadius: "16px",
-          border: "1px solid #222",
+          border: isCardView ? "1px solid #e2e8f0" : "1px solid #222",
+          boxShadow: isCardView ? "0 4px 20px rgba(0,0,0,0.08)" : "none",
         }}
       >
         {!player ? (
@@ -412,6 +482,7 @@ export default function RegisterPage() {
                 fontSize: "22px",
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
+                color: "#1a1a1a",
               }}
             >
               Kartu Pemain
@@ -421,13 +492,14 @@ export default function RegisterPage() {
                 marginBottom: "20px",
                 textAlign: "center",
                 fontSize: "12px",
-                color: "#A0AEC0",
+                color: "#64748b",
               }}
             >
               Simpan gambar atau PDF kartu ini untuk dicetak seperti kartu debit.
             </p>
 
             <div
+              ref={cardsWrapperRef}
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -586,6 +658,43 @@ export default function RegisterPage() {
                   Scan QR ini di panel host PADEL KECIL untuk bergabung ke court.
                 </div>
               </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                marginTop: 24,
+                flexWrap: "wrap",
+                justifyContent: "center",
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                disabled={!!downloading}
+                style={{
+                  ...buttonStyle,
+                  background: downloading ? "#2D3748" : "#4FD1C5",
+                  minWidth: 160,
+                }}
+              >
+                {downloading === "pdf" ? "Mengunduh..." : "Download PDF"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadJPEG}
+                disabled={!!downloading}
+                style={{
+                  ...secondaryButtonStyle,
+                  background: "transparent",
+                  borderColor: "#4FD1C5",
+                  color: "#4FD1C5",
+                  minWidth: 160,
+                }}
+              >
+                {downloading === "jpeg" ? "Mengunduh..." : "Download JPEG"}
+              </button>
             </div>
           </>
         )}
