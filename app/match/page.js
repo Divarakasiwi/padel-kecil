@@ -47,7 +47,7 @@ export default function MatchPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        padding: "16px",
+        padding: "max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left))",
         fontFamily: "Inter, Arial, sans-serif",
       }}
     >

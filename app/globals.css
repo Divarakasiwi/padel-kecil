@@ -16,6 +16,13 @@ body {
   overflow-x: hidden;
 }
 
+/* Sentuhan lebih nyaman di tablet/iPad (kurang delay highlight) */
+@media (hover: none) and (pointer: coarse) {
+  a, button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

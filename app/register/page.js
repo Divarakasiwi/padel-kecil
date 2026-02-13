@@ -134,30 +134,45 @@ export default function RegisterPage() {
     const back = backRef.current;
     const prev = {
       wrapperWidth: wrapper.style.width,
+      wrapperGrid: wrapper.style.gridTemplateColumns || "1fr 1fr",
       frontWidth: front.style.width,
       frontHeight: front.style.height,
       backWidth: back.style.width,
       backHeight: back.style.height,
     };
+    const SCALE = 2;
     try {
       wrapper.style.width = `${CAPTURE_WIDTH}px`;
+      wrapper.style.gridTemplateColumns = `${CAPTURE_CARD_W}px ${CAPTURE_CARD_W}px`;
       front.style.width = `${CAPTURE_CARD_W}px`;
       front.style.height = `${CAPTURE_CARD_H}px`;
       back.style.width = `${CAPTURE_CARD_W}px`;
       back.style.height = `${CAPTURE_CARD_H}px`;
       await waitForLayout();
-      const canvas = await html2canvas(wrapper, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#f0f2f5",
-        logging: false,
-      });
+      const [frontCanvas, backCanvas] = await Promise.all([
+        html2canvas(front, { scale: SCALE, useCORS: true, backgroundColor: null, logging: false }),
+        html2canvas(back, { scale: SCALE, useCORS: true, backgroundColor: null, logging: false }),
+      ]);
       wrapper.style.width = prev.wrapperWidth;
+      wrapper.style.gridTemplateColumns = prev.wrapperGrid;
       front.style.width = prev.frontWidth;
       front.style.height = prev.frontHeight;
       back.style.width = prev.backWidth;
       back.style.height = prev.backHeight;
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+
+      const gapPx = 20 * SCALE;
+      const cardW = CAPTURE_CARD_W * SCALE;
+      const cardH = CAPTURE_CARD_H * SCALE;
+      const totalW = CAPTURE_WIDTH * SCALE;
+      const composite = document.createElement("canvas");
+      composite.width = totalW;
+      composite.height = cardH;
+      const ctx = composite.getContext("2d");
+      ctx.fillStyle = "#f0f2f5";
+      ctx.fillRect(0, 0, totalW, cardH);
+      ctx.drawImage(frontCanvas, 0, 0, cardW, cardH, 0, 0, cardW, cardH);
+      ctx.drawImage(backCanvas, 0, 0, cardW, cardH, cardW + gapPx, 0, cardW, cardH);
+      const dataUrl = composite.toDataURL("image/jpeg", 0.92);
       const a = document.createElement("a");
       a.href = dataUrl;
       a.download = `kartu-pemain-${player.name.replace(/\s+/g, "-")}.jpg`;
@@ -165,6 +180,7 @@ export default function RegisterPage() {
     } catch (e) {
       console.error(e);
       wrapper.style.width = prev.wrapperWidth;
+      wrapper.style.gridTemplateColumns = prev.wrapperGrid;
       front.style.width = prev.frontWidth;
       front.style.height = prev.frontHeight;
       back.style.width = prev.backWidth;
@@ -182,6 +198,7 @@ export default function RegisterPage() {
     const back = backRef.current;
     const prev = {
       wrapperWidth: wrapper.style.width,
+      wrapperGrid: wrapper.style.gridTemplateColumns || "1fr 1fr",
       frontWidth: front.style.width,
       frontHeight: front.style.height,
       backWidth: back.style.width,
@@ -189,6 +206,7 @@ export default function RegisterPage() {
     };
     try {
       wrapper.style.width = `${CAPTURE_WIDTH}px`;
+      wrapper.style.gridTemplateColumns = `${CAPTURE_CARD_W}px ${CAPTURE_CARD_W}px`;
       front.style.width = `${CAPTURE_CARD_W}px`;
       front.style.height = `${CAPTURE_CARD_H}px`;
       back.style.width = `${CAPTURE_CARD_W}px`;
@@ -209,6 +227,7 @@ export default function RegisterPage() {
         }),
       ]);
       wrapper.style.width = prev.wrapperWidth;
+      wrapper.style.gridTemplateColumns = prev.wrapperGrid;
       front.style.width = prev.frontWidth;
       front.style.height = prev.frontHeight;
       back.style.width = prev.backWidth;
@@ -246,6 +265,7 @@ export default function RegisterPage() {
     } catch (e) {
       console.error(e);
       wrapper.style.width = prev.wrapperWidth;
+      wrapper.style.gridTemplateColumns = prev.wrapperGrid;
       front.style.width = prev.frontWidth;
       front.style.height = prev.frontHeight;
       back.style.width = prev.backWidth;
@@ -355,7 +375,7 @@ export default function RegisterPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        padding: "24px",
+        padding: "max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left))",
       }}
     >
       <div
@@ -601,7 +621,7 @@ export default function RegisterPage() {
               <div
                 ref={frontRef}
                 style={{
-                  background: "#0B0B0B",
+                  background: "radial-gradient(ellipse 80% 50% at 20% 20%, rgba(79,209,197,0.18) 0%, transparent 50%), #0B0B0B",
                   borderRadius: 20,
                   padding: 20,
                   color: "#E2E8F0",
@@ -614,18 +634,18 @@ export default function RegisterPage() {
                   overflow: "hidden",
                 }}
               >
-                {/* Garis dekoratif sudut — nuansa tosca */}
+                {/* Garis dekoratif tosca – terang & glow seperti referensi */}
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "120%",
-                    height: 2,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, transparent 70%)",
-                    transform: "rotate(-35deg)",
+                    width: "140%",
+                    height: 3,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 50%, transparent 85%)",
+                    transform: "rotate(-32deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.4)",
+                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.6)",
                   }}
                 />
                 <div
@@ -633,12 +653,13 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "80%",
-                    height: 1,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.8) 0%, transparent 100%)",
-                    transform: "rotate(-25deg)",
+                    width: "90%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.95) 0%, transparent 100%)",
+                    transform: "rotate(-22deg)",
                     transformOrigin: "left center",
-                    marginTop: 24,
+                    marginTop: 28,
+                    boxShadow: "0 0 10px rgba(79,209,197,0.5)",
                   }}
                 />
                 <div
@@ -646,12 +667,12 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     bottom: 0,
-                    width: "100%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent 30%, #4FD1C5 100%)",
-                    transform: "rotate(145deg)",
+                    width: "110%",
+                    height: 3,
+                    background: "linear-gradient(90deg, transparent 25%, rgba(79,209,197,0.5) 50%, #4FD1C5 100%)",
+                    transform: "rotate(148deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.5)",
                   }}
                 />
                 <div
@@ -659,36 +680,39 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     bottom: 0,
-                    width: "70%",
-                    height: 1,
-                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.6) 100%)",
-                    transform: "rotate(155deg)",
+                    width: "75%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.8) 100%)",
+                    transform: "rotate(158deg)",
                     transformOrigin: "right center",
-                    marginBottom: 20,
+                    marginBottom: 22,
+                    boxShadow: "0 0 8px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
-                    top: "50%",
-                    width: "40%",
-                    height: 1,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.4))",
+                    top: "48%",
+                    width: "45%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.6))",
                     transform: "rotate(90deg)",
                     transformOrigin: "right center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
-                    bottom: "30%",
-                    width: "35%",
-                    height: 1,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.35), transparent)",
+                    bottom: "28%",
+                    width: "38%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.5), transparent)",
                     transform: "rotate(-90deg)",
                     transformOrigin: "left center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
                   }}
                 />
 
@@ -790,7 +814,7 @@ export default function RegisterPage() {
               <div
                 ref={backRef}
                 style={{
-                  background: "#0B0B0B",
+                  background: "radial-gradient(ellipse 70% 60% at 80% 80%, rgba(79,209,197,0.18) 0%, transparent 50%), #0B0B0B",
                   borderRadius: 20,
                   padding: 20,
                   color: "#E2E8F0",
@@ -804,18 +828,18 @@ export default function RegisterPage() {
                   overflow: "hidden",
                 }}
               >
-                {/* Garis dekoratif sudut — nuansa tosca */}
+                {/* Garis dekoratif tosca – terang & glow */}
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
                     top: 0,
-                    width: "110%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent 30%, #4FD1C5 100%)",
-                    transform: "rotate(35deg)",
+                    width: "130%",
+                    height: 3,
+                    background: "linear-gradient(90deg, transparent 20%, rgba(79,209,197,0.5) 50%, #4FD1C5 100%)",
+                    transform: "rotate(32deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.4)",
+                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.6)",
                   }}
                 />
                 <div
@@ -823,12 +847,13 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     top: 0,
-                    width: "75%",
-                    height: 1,
-                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.8) 100%)",
-                    transform: "rotate(25deg)",
+                    width: "85%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.95) 100%)",
+                    transform: "rotate(22deg)",
                     transformOrigin: "right center",
-                    marginTop: 22,
+                    marginTop: 26,
+                    boxShadow: "0 0 10px rgba(79,209,197,0.5)",
                   }}
                 />
                 <div
@@ -836,12 +861,12 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     bottom: 0,
-                    width: "100%",
-                    height: 2,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, transparent 70%)",
-                    transform: "rotate(-145deg)",
+                    width: "120%",
+                    height: 3,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 75%, transparent 100%)",
+                    transform: "rotate(-148deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.5)",
                   }}
                 />
                 <div
@@ -849,36 +874,39 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     bottom: 0,
-                    width: "65%",
-                    height: 1,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.6) 0%, transparent 100%)",
-                    transform: "rotate(-155deg)",
+                    width: "70%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.8) 0%, transparent 100%)",
+                    transform: "rotate(-158deg)",
                     transformOrigin: "left center",
-                    marginBottom: 18,
+                    marginBottom: 20,
+                    boxShadow: "0 0 8px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
-                    top: "45%",
-                    width: "38%",
-                    height: 1,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.4), transparent)",
+                    top: "46%",
+                    width: "42%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.6), transparent)",
                     transform: "rotate(-90deg)",
                     transformOrigin: "left center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
-                    bottom: "28%",
-                    width: "32%",
-                    height: 1,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.35))",
+                    bottom: "26%",
+                    width: "36%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.5))",
                     transform: "rotate(90deg)",
                     transformOrigin: "right center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
                   }}
                 />
 

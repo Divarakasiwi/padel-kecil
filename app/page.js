@@ -330,7 +330,7 @@ const updateExtraCourtState = (id, updater) => {
         minHeight: "100vh",
         background: "#0B0B0B",
         color: "#fff",
-        padding: "24px",
+        padding: "max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left))",
         fontFamily: "Inter, system-ui, Arial, sans-serif",
         position: "relative",
       }}
@@ -403,14 +403,20 @@ const updateExtraCourtState = (id, updater) => {
                   top: 8,
                   right: 8,
                   zIndex: 10,
-                  width: 22,
-                  height: 22,
+                  width: 44,
+                  height: 44,
+                  minWidth: 44,
+                  minHeight: 44,
                   borderRadius: "999px",
                   border: "1px solid #553333",
                   background: "rgba(26,15,15,0.9)",
                   color: "#FF6B6B",
-                  fontSize: 12,
+                  fontSize: 18,
                   cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
                 }}
               >
                 ×
@@ -939,7 +945,7 @@ const performFinishMatch = async () => {
 </button>
 
       {/* TEAMS */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px", minWidth: 0 }}>
         <TeamColumn 
           title="TEAM 1" 
           teamKey="team1"
@@ -973,10 +979,10 @@ const performFinishMatch = async () => {
 
       </div>
 
-      {/* SCORE */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-        {/* TEAM 1 */}
-        <div style={{ textAlign: "center" }}>
+      {/* SCORE – sejajar dengan kolom TEAM 1 / TEAM 2 */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "center", minWidth: 0 }}>
+        {/* TEAM 1 score */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
           <div
             onClick={addTeam1}
             style={{
@@ -989,17 +995,15 @@ const performFinishMatch = async () => {
           >
             {court.score1}
           </div>
-
           <button
             onClick={reduceTeam1}
             disabled={court.score1 === 0 || isFinished}
             style={{
-              marginTop: "6px",
-              padding: "4px 10px",
-              fontSize: "12px",
+              padding: "8px 16px",
+              fontSize: "14px",
               minWidth: "48px",
               minHeight: "40px",
-              borderRadius: "6px",
+              borderRadius: "10px",
               border: "1px solid #4FD1C555",
               background: "#0B0B0B",
               color: "#4FD1C5",
@@ -1011,10 +1015,8 @@ const performFinishMatch = async () => {
           </button>
         </div>
 
-        <div style={{ fontSize: "26px", color: "#555" }}>–</div>
-
-        {/* TEAM 2 */}
-        <div style={{ textAlign: "center" }}>
+        {/* TEAM 2 score */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
           <div
             onClick={addTeam2}
             style={{
@@ -1027,23 +1029,20 @@ const performFinishMatch = async () => {
           >
             {court.score2}
           </div>
-
           <button
             onClick={reduceTeam2}
-  disabled={court.score2 === 0 || isFinished}
-
-  style={{
-    marginTop: "8px",
-    padding: "10px 16px",
-    fontSize: "18px",
-    minWidth: "48px",
-    minHeight: "40px",
-    borderRadius: "10px",
-    border: "1px solid #D6C7A1",
-    background: "#0B0B0B",
-    color: "#D6C7A1",
-    cursor: "pointer",
-    boxShadow: "0 0 2px rgba(214,199,161,0.4)",
+            disabled={court.score2 === 0 || isFinished}
+            style={{
+              padding: "8px 16px",
+              fontSize: "14px",
+              minWidth: "48px",
+              minHeight: "40px",
+              borderRadius: "10px",
+              border: "1px solid #D6C7A1",
+              background: "#0B0B0B",
+              color: "#D6C7A1",
+              cursor: "pointer",
+              boxShadow: "0 0 2px rgba(214,199,161,0.4)",
             }}
           >
             −
@@ -1052,7 +1051,7 @@ const performFinishMatch = async () => {
       </div>
 
       {/* TOTAL */}
-      <div style={{ textAlign: "center", fontSize: "12px", color: "#777", margin: "10px 0" }}>
+      <div style={{ textAlign: "center", fontSize: "12px", color: "#777", margin: "14px 0 10px" }}>
         total: {totalScore} / 21
       </div>
 
@@ -1492,11 +1491,12 @@ function TeamColumn({
   const emptyCount = Math.max(0, MAX_PLAYER - players.length);
 
   return (
-    <div>
-      <div style={{ display: "grid", gap: "10px" }}>
-
- {/* PLAYER */}
-{players.map((p) => {
+    <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <div style={{ fontSize: "11px", fontWeight: 600, color: "#666", marginBottom: "8px", letterSpacing: "0.05em" }}>
+        {title}
+      </div>
+      <div style={{ display: "grid", gap: "10px", flex: 1 }}>
+        {players.map((p) => {
   const slotColor = p.slot ? SLOT_COLORS[p.slot] : null;
 
   return (
@@ -1518,9 +1518,13 @@ function TeamColumn({
           ? `1px solid ${slotColor.border}`
           : "1px solid #111",
         cursor: "pointer",
+        minHeight: "72px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-start",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
   {p.photoUrl && (
     <img
   src={p.photoUrl || "/avatar-placeholder.png"}
@@ -1563,21 +1567,10 @@ function TeamColumn({
   );
 })}
 
-{/* SLOT KOSONG */}
 {Array.from({ length: emptyCount }).map((_, i) => (
   <div
     key={`empty-${i}`}
-
-
-    onClick={() => {
-  onEmptySlotClick(teamKey, players.length + i);
-}}
-
-
-
-
-
-
+    onClick={() => onEmptySlotClick(teamKey, players.length + i)}
     style={{
       padding: "16px",
       borderRadius: "14px",
@@ -1585,6 +1578,10 @@ function TeamColumn({
       color: "#777",
       border: "2px dashed #444",
       cursor: "pointer",
+      minHeight: "72px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
     }}
   >
     + SLOT KOSONG
