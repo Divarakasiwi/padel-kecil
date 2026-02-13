@@ -42,6 +42,9 @@ const REGISTER_CODE =
     ? process.env.NEXT_PUBLIC_REGISTER_CODE
     : "123456"; // ganti via env di produksi
 
+// Sementara disembunyikan agar bisa cek hasil cetak kartu tanpa upload foto
+const HIDE_PHOTO_UPLOAD = true;
+
 async function compressImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -133,7 +136,12 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!name.trim() || !phone.trim() || !photoFile) {
+    if (!name.trim() || !phone.trim()) {
+      setError("Lengkapi nama dan nomor HP terlebih dahulu.");
+      return;
+    }
+
+    if (!HIDE_PHOTO_UPLOAD && !photoFile) {
       setError("Lengkapi nama, nomor HP, dan foto terlebih dahulu.");
       return;
     }
@@ -141,19 +149,21 @@ export default function RegisterPage() {
     try {
       setLoading(true);
 
-      // compress image jika besar
-      let fileToUpload = photoFile;
-      if (photoFile.size > 3 * 1024 * 1024) {
-        fileToUpload = await compressImage(photoFile);
+      let photoUrl = "";
+      if (!HIDE_PHOTO_UPLOAD && photoFile) {
+        // compress image jika besar
+        let fileToUpload = photoFile;
+        if (photoFile.size > 3 * 1024 * 1024) {
+          fileToUpload = await compressImage(photoFile);
+        }
+        // upload ke Storage
+        const storageRef = ref(
+          storage,
+          `players/${Date.now()}_${fileToUpload.name.replace(/\s+/g, "_")}`
+        );
+        const snapshot = await uploadBytes(storageRef, fileToUpload);
+        photoUrl = await getDownloadURL(snapshot.ref);
       }
-
-      // upload ke Storage
-      const storageRef = ref(
-        storage,
-        `players/${Date.now()}_${fileToUpload.name.replace(/\s+/g, "_")}`
-      );
-      const snapshot = await uploadBytes(storageRef, fileToUpload);
-      const photoUrl = await getDownloadURL(snapshot.ref);
 
       // simpan ke Firestore
       const docRef = await addDoc(collection(db, "players"), {
@@ -288,90 +298,92 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div style={{ marginBottom: "18px" }}>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.12em",
-                    color: "#A0AEC0",
-                  }}
-                >
-                  Foto wajah
-                </label>
-                <div
-                  style={{
-                    marginTop: "8px",
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "center",
-                  }}
-                >
-                  <button
-                    type="button"
-                    style={secondaryButtonStyle}
-                    onClick={() => {
-                      const input = document.getElementById("photo-input");
-                      if (input) {
-                        input.click();
-                      }
+              {!HIDE_PHOTO_UPLOAD && (
+                <div style={{ marginBottom: "18px" }}>
+                  <label
+                    style={{
+                      fontSize: "12px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.12em",
+                      color: "#A0AEC0",
                     }}
                   >
-                    Ambil foto / pilih dari galeri
-                  </button>
-                  <input
-                    id="photo-input"
-                    type="file"
-                    accept="image/*"
-                    capture="user"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
-                </div>
-                <p
-                  style={{
-                    marginTop: 6,
-                    fontSize: 11,
-                    color: "#718096",
-                  }}
-                >
-                  Gunakan kamera depan, pastikan wajah menghadap kamera dan terang.
-                </p>
-                {photoPreview && (
+                    Foto wajah
+                  </label>
                   <div
                     style={{
-                      marginTop: 12,
+                      marginTop: "8px",
                       display: "flex",
-                      justifyContent: "center",
+                      gap: 12,
+                      alignItems: "center",
                     }}
                   >
-                    <div
-                      style={{
-                        width: 180,
-                        height: 180,
-                        borderRadius: "999px",
-                        border: "2px solid #4FD1C5",
-                        boxShadow: "0 0 18px rgba(79,209,197,0.6)",
-                        overflow: "hidden",
-                        position: "relative",
-                        background:
-                          "radial-gradient(circle at 30% 20%, #4FD1C5 0, transparent 55%)",
+                    <button
+                      type="button"
+                      style={secondaryButtonStyle}
+                      onClick={() => {
+                        const input = document.getElementById("photo-input");
+                        if (input) {
+                          input.click();
+                        }
                       }}
                     >
-                      <img
-                        src={photoPreview}
-                        alt="Preview"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          objectPosition: "center",
-                        }}
-                      />
-                    </div>
+                      Ambil foto / pilih dari galeri
+                    </button>
+                    <input
+                      id="photo-input"
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                    />
                   </div>
-                )}
-              </div>
+                  <p
+                    style={{
+                      marginTop: 6,
+                      fontSize: 11,
+                      color: "#718096",
+                    }}
+                  >
+                    Gunakan kamera depan, pastikan wajah menghadap kamera dan terang.
+                  </p>
+                  {photoPreview && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 180,
+                          height: 180,
+                          borderRadius: "999px",
+                          border: "2px solid #4FD1C5",
+                          boxShadow: "0 0 18px rgba(79,209,197,0.6)",
+                          overflow: "hidden",
+                          position: "relative",
+                          background:
+                            "radial-gradient(circle at 30% 20%, #4FD1C5 0, transparent 55%)",
+                        }}
+                      >
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {error && (
                 <div
@@ -470,18 +482,39 @@ export default function RegisterPage() {
                     gap: 16,
                   }}
                 >
-                  <img
-                    src={player.photoUrl}
-                    alt={player.name}
-                    style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      border: "2px solid rgba(255,255,255,0.85)",
-                      boxShadow: "0 0 12px rgba(0,0,0,0.7)",
-                    }}
-                  />
+                  {player.photoUrl ? (
+                    <img
+                      src={player.photoUrl}
+                      alt={player.name}
+                      style={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        border: "2px solid rgba(255,255,255,0.85)",
+                        boxShadow: "0 0 12px rgba(0,0,0,0.7)",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.2)",
+                        border: "2px solid rgba(255,255,255,0.85)",
+                        boxShadow: "0 0 12px rgba(0,0,0,0.7)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 24,
+                        fontWeight: 600,
+                        color: "#E2E8F0",
+                      }}
+                    >
+                      {(player.name || "?").charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <div
                       style={{
