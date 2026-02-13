@@ -114,23 +114,49 @@ export default function RegisterPage() {
   const [downloading, setDownloading] = useState(""); // "pdf" | "jpeg" | ""
 
   const CARD_ASPECT = 1.586; // rasio kartu debit
-  const CAPTURE_WIDTH = 800; // lebar tetap saat capture agar rasio konsisten
+  const CAPTURE_WIDTH = 800;
+  const CAPTURE_GAP = 20;
+  const CAPTURE_CARD_W = (CAPTURE_WIDTH - CAPTURE_GAP) / 2;
+  const CAPTURE_CARD_H = Math.round(CAPTURE_CARD_W / CARD_ASPECT);
+
+  const waitForLayout = () =>
+    new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
 
   const handleDownloadJPEG = async () => {
-    if (!cardsWrapperRef.current || !player) return;
+    if (!cardsWrapperRef.current || !frontRef.current || !backRef.current || !player) return;
     setDownloading("jpeg");
     const wrapper = cardsWrapperRef.current;
-    const prevWidth = wrapper.style.width;
+    const front = frontRef.current;
+    const back = backRef.current;
+    const prev = {
+      wrapperWidth: wrapper.style.width,
+      frontWidth: front.style.width,
+      frontHeight: front.style.height,
+      backWidth: back.style.width,
+      backHeight: back.style.height,
+    };
     try {
       wrapper.style.width = `${CAPTURE_WIDTH}px`;
-      wrapper.offsetHeight; // reflow
+      front.style.width = `${CAPTURE_CARD_W}px`;
+      front.style.height = `${CAPTURE_CARD_H}px`;
+      back.style.width = `${CAPTURE_CARD_W}px`;
+      back.style.height = `${CAPTURE_CARD_H}px`;
+      await waitForLayout();
       const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#f0f2f5",
         logging: false,
       });
-      wrapper.style.width = prevWidth;
+      wrapper.style.width = prev.wrapperWidth;
+      front.style.width = prev.frontWidth;
+      front.style.height = prev.frontHeight;
+      back.style.width = prev.backWidth;
+      back.style.height = prev.backHeight;
       const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
       const a = document.createElement("a");
       a.href = dataUrl;
@@ -138,7 +164,11 @@ export default function RegisterPage() {
       a.click();
     } catch (e) {
       console.error(e);
-      wrapper.style.width = prevWidth;
+      wrapper.style.width = prev.wrapperWidth;
+      front.style.width = prev.frontWidth;
+      front.style.height = prev.frontHeight;
+      back.style.width = prev.backWidth;
+      back.style.height = prev.backHeight;
     } finally {
       setDownloading("");
     }
@@ -148,25 +178,41 @@ export default function RegisterPage() {
     if (!cardsWrapperRef.current || !frontRef.current || !backRef.current || !player) return;
     setDownloading("pdf");
     const wrapper = cardsWrapperRef.current;
-    const prevWidth = wrapper.style.width;
+    const front = frontRef.current;
+    const back = backRef.current;
+    const prev = {
+      wrapperWidth: wrapper.style.width,
+      frontWidth: front.style.width,
+      frontHeight: front.style.height,
+      backWidth: back.style.width,
+      backHeight: back.style.height,
+    };
     try {
       wrapper.style.width = `${CAPTURE_WIDTH}px`;
-      wrapper.offsetHeight; // reflow agar kartu render dengan rasio benar
+      front.style.width = `${CAPTURE_CARD_W}px`;
+      front.style.height = `${CAPTURE_CARD_H}px`;
+      back.style.width = `${CAPTURE_CARD_W}px`;
+      back.style.height = `${CAPTURE_CARD_H}px`;
+      await waitForLayout();
       const [frontCanvas, backCanvas] = await Promise.all([
-        html2canvas(frontRef.current, {
+        html2canvas(front, {
           scale: 2,
           useCORS: true,
           backgroundColor: null,
           logging: false,
         }),
-        html2canvas(backRef.current, {
+        html2canvas(back, {
           scale: 2,
           useCORS: true,
           backgroundColor: null,
           logging: false,
         }),
       ]);
-      wrapper.style.width = prevWidth;
+      wrapper.style.width = prev.wrapperWidth;
+      front.style.width = prev.frontWidth;
+      front.style.height = prev.frontHeight;
+      back.style.width = prev.backWidth;
+      back.style.height = prev.backHeight;
 
       const frontData = frontCanvas.toDataURL("image/jpeg", 0.92);
       const backData = backCanvas.toDataURL("image/jpeg", 0.92);
@@ -199,7 +245,11 @@ export default function RegisterPage() {
       pdf.save(`kartu-pemain-${player.name.replace(/\s+/g, "-")}.pdf`);
     } catch (e) {
       console.error(e);
-      wrapper.style.width = prevWidth;
+      wrapper.style.width = prev.wrapperWidth;
+      front.style.width = prev.frontWidth;
+      front.style.height = prev.frontHeight;
+      back.style.width = prev.backWidth;
+      back.style.height = prev.backHeight;
     } finally {
       setDownloading("");
     }
@@ -234,6 +284,11 @@ export default function RegisterPage() {
 
     if (!name.trim() || !phone.trim()) {
       setError("Lengkapi nama dan nomor HP terlebih dahulu.");
+      return;
+    }
+    const digitsOnly = phone.replace(/\D/g, "");
+    if (digitsOnly.length < 10 || digitsOnly.length > 12) {
+      setError("Nomor HP harus 10–12 digit (contoh: 08xxxxxxxxxx).");
       return;
     }
 
@@ -390,8 +445,14 @@ export default function RegisterPage() {
                   Nomor HP
                 </label>
                 <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={12}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 12);
+                    setPhone(v);
+                  }}
                   placeholder="08xxxxxxxxxx"
                   style={inputStyle}
                 />

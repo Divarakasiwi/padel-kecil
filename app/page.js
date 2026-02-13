@@ -1542,24 +1542,16 @@ function TeamColumn({
   <div>
   <div>{p.name}</div>
 
-  {/* 👑 QUEEN BADGE */}
+  {/* 👑 QUEEN BADGE – breathing di slot */}
   {p.badge === "queen" && (
-    <div
-      style={{
-        marginTop: 2,
-        fontSize: 11,
-        color: "#FF6BFF",
-        fontWeight: 600,
-        textShadow: "0 0 6px rgba(255,107,255,0.8)",
-      }}
-    >
+    <div className="queen-badge" style={{ marginTop: 2 }}>
       👑 QUEEN
     </div>
   )}
 
-  {/* ⭐ VIP (tetap ada kalau mau) */}
+  {/* ⭐ VIP – breathing di slot */}
   {p.isVIP && (
-    <div style={{ fontSize: 11, color: "#FFD700" }}>
+    <div className="vip-badge-slot">
       ⭐ VIP
     </div>
   )}
@@ -1832,6 +1824,26 @@ function InfoRow({ left, right, badge }) {
       0 0 3px rgba(255,255,255,0.8),
       0 0 6px rgba(255,215,0,0.5),
       0 0 10px rgba(255,215,0,0.35);
+  }
+}
+
+/* VIP badge di slot – efek breathing */
+.vip-badge-slot {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFD700;
+  text-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+  animation: vipBreathing 2.2s ease-in-out infinite;
+}
+@keyframes vipBreathing {
+  0%, 100% {
+    opacity: 0.9;
+    text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
   }
 }
 
