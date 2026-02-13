@@ -113,16 +113,24 @@ export default function RegisterPage() {
   const cardsWrapperRef = useRef(null);
   const [downloading, setDownloading] = useState(""); // "pdf" | "jpeg" | ""
 
+  const CARD_ASPECT = 1.586; // rasio kartu debit
+  const CAPTURE_WIDTH = 800; // lebar tetap saat capture agar rasio konsisten
+
   const handleDownloadJPEG = async () => {
     if (!cardsWrapperRef.current || !player) return;
     setDownloading("jpeg");
+    const wrapper = cardsWrapperRef.current;
+    const prevWidth = wrapper.style.width;
     try {
-      const canvas = await html2canvas(cardsWrapperRef.current, {
+      wrapper.style.width = `${CAPTURE_WIDTH}px`;
+      wrapper.offsetHeight; // reflow
+      const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#f0f2f5",
         logging: false,
       });
+      wrapper.style.width = prevWidth;
       const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
       const a = document.createElement("a");
       a.href = dataUrl;
@@ -130,15 +138,20 @@ export default function RegisterPage() {
       a.click();
     } catch (e) {
       console.error(e);
+      wrapper.style.width = prevWidth;
     } finally {
       setDownloading("");
     }
   };
 
   const handleDownloadPDF = async () => {
-    if (!frontRef.current || !backRef.current || !player) return;
+    if (!cardsWrapperRef.current || !frontRef.current || !backRef.current || !player) return;
     setDownloading("pdf");
+    const wrapper = cardsWrapperRef.current;
+    const prevWidth = wrapper.style.width;
     try {
+      wrapper.style.width = `${CAPTURE_WIDTH}px`;
+      wrapper.offsetHeight; // reflow agar kartu render dengan rasio benar
       const [frontCanvas, backCanvas] = await Promise.all([
         html2canvas(frontRef.current, {
           scale: 2,
@@ -153,24 +166,40 @@ export default function RegisterPage() {
           logging: false,
         }),
       ]);
+      wrapper.style.width = prevWidth;
 
       const frontData = frontCanvas.toDataURL("image/jpeg", 0.92);
       const backData = backCanvas.toDataURL("image/jpeg", 0.92);
 
-      // Satu halaman landscape: dua kartu berdampingan
       const pdf = new jsPDF("l", "mm", "a4");
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const margin = 12;
-      const cardW = (pageW - margin * 3) / 2;
-      const cardH = cardW / 1.586;
+      const boxW = (pageW - margin * 3) / 2;
+      const boxH = boxW / CARD_ASPECT;
 
-      pdf.addImage(frontData, "JPEG", margin, (pageH - cardH) / 2, cardW, cardH);
-      pdf.addImage(backData, "JPEG", margin * 2 + cardW, (pageH - cardH) / 2, cardW, cardH);
+      // Gambar sesuai aspek rasio asli agar tidak gepeng
+      const drawImage = (dataUrl, x, y, canvas) => {
+        const imgAspect = canvas.width / canvas.height;
+        const boxAspect = boxW / boxH;
+        let w = boxW, h = boxH;
+        if (imgAspect > boxAspect) {
+          h = boxW / imgAspect;
+        } else {
+          w = boxH * imgAspect;
+        }
+        const dx = x + (boxW - w) / 2;
+        const dy = y + (boxH - h) / 2;
+        pdf.addImage(dataUrl, "JPEG", dx, dy, w, h);
+      };
+      const yCard = (pageH - boxH) / 2;
+      drawImage(frontData, margin, yCard, frontCanvas);
+      drawImage(backData, margin * 2 + boxW, yCard, backCanvas);
 
       pdf.save(`kartu-pemain-${player.name.replace(/\s+/g, "-")}.pdf`);
     } catch (e) {
       console.error(e);
+      wrapper.style.width = prevWidth;
     } finally {
       setDownloading("");
     }
@@ -511,25 +540,105 @@ export default function RegisterPage() {
               <div
                 ref={frontRef}
                 style={{
-                  background:
-                    "radial-gradient(circle at top left, #4FD1C5 0, #0B0B0B 55%)",
+                  background: "#0B0B0B",
                   borderRadius: 20,
                   padding: 20,
                   color: "#E2E8F0",
                   position: "relative",
-                  aspectRatio: "1.586", // kira2 kartu debit
+                  aspectRatio: "1.586",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
                   boxShadow: "0 20px 40px rgba(0,0,0,0.7)",
+                  overflow: "hidden",
                 }}
               >
+                {/* Garis dekoratif sudut — nuansa tosca */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "120%",
+                    height: 2,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, transparent 70%)",
+                    transform: "rotate(-35deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.4)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "80%",
+                    height: 1,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.8) 0%, transparent 100%)",
+                    transform: "rotate(-25deg)",
+                    transformOrigin: "left center",
+                    marginTop: 24,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    width: "100%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 30%, #4FD1C5 100%)",
+                    transform: "rotate(145deg)",
+                    transformOrigin: "right center",
+                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.3)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    width: "70%",
+                    height: 1,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.6) 100%)",
+                    transform: "rotate(155deg)",
+                    transformOrigin: "right center",
+                    marginBottom: 20,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "50%",
+                    width: "40%",
+                    height: 1,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.4))",
+                    transform: "rotate(90deg)",
+                    transformOrigin: "right center",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: "30%",
+                    width: "35%",
+                    height: 1,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.35), transparent)",
+                    transform: "rotate(-90deg)",
+                    transformOrigin: "left center",
+                  }}
+                />
+
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     marginBottom: 8,
+                    position: "relative",
+                    zIndex: 1,
                   }}
                 >
                   <div
@@ -552,6 +661,8 @@ export default function RegisterPage() {
                     display: "flex",
                     alignItems: "center",
                     gap: 16,
+                    position: "relative",
+                    zIndex: 1,
                   }}
                 >
                   {player.photoUrl ? (
@@ -606,6 +717,8 @@ export default function RegisterPage() {
                     textTransform: "uppercase",
                     letterSpacing: 1.2,
                     opacity: 0.8,
+                    position: "relative",
+                    zIndex: 1,
                   }}
                 >
                   Player Card
@@ -616,8 +729,7 @@ export default function RegisterPage() {
               <div
                 ref={backRef}
                 style={{
-                  background:
-                    "radial-gradient(circle at bottom right, #4FD1C5 0, #0B0B0B 55%)",
+                  background: "#0B0B0B",
                   borderRadius: 20,
                   padding: 20,
                   color: "#E2E8F0",
@@ -628,8 +740,87 @@ export default function RegisterPage() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   boxShadow: "0 20px 40px rgba(0,0,0,0.7)",
+                  overflow: "hidden",
                 }}
               >
+                {/* Garis dekoratif sudut — nuansa tosca */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    width: "110%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 30%, #4FD1C5 100%)",
+                    transform: "rotate(35deg)",
+                    transformOrigin: "right center",
+                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.4)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    width: "75%",
+                    height: 1,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.8) 100%)",
+                    transform: "rotate(25deg)",
+                    transformOrigin: "right center",
+                    marginTop: 22,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: 0,
+                    width: "100%",
+                    height: 2,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, transparent 70%)",
+                    transform: "rotate(-145deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 12px #4FD1C5, 0 0 24px rgba(79,209,197,0.3)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: 0,
+                    width: "65%",
+                    height: 1,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.6) 0%, transparent 100%)",
+                    transform: "rotate(-155deg)",
+                    transformOrigin: "left center",
+                    marginBottom: 18,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: "45%",
+                    width: "38%",
+                    height: 1,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.4), transparent)",
+                    transform: "rotate(-90deg)",
+                    transformOrigin: "left center",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: "28%",
+                    width: "32%",
+                    height: 1,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.35))",
+                    transform: "rotate(90deg)",
+                    transformOrigin: "right center",
+                  }}
+                />
+
                 <div
                   style={{
                     width: "70%",
@@ -640,6 +831,8 @@ export default function RegisterPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     padding: 8,
+                    position: "relative",
+                    zIndex: 1,
                   }}
                 >
                   <img
@@ -653,6 +846,8 @@ export default function RegisterPage() {
                     fontSize: 10,
                     textAlign: "center",
                     opacity: 0.85,
+                    position: "relative",
+                    zIndex: 1,
                   }}
                 >
                   Scan QR ini di panel host PADEL KECIL untuk bergabung ke court.
