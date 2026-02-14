@@ -399,6 +399,8 @@ export default function RegisterPage() {
         id: playerId,
         name: normalizedName,
         photoUrl,
+        badge: null,
+        isVIP: false,
       });
       setQrUrl(qr);
     } catch (e) {
@@ -883,7 +885,7 @@ export default function RegisterPage() {
                       {(player.name || "?").charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
                         fontSize: 18,
@@ -893,6 +895,50 @@ export default function RegisterPage() {
                     >
                       {player.name}
                     </div>
+                    {(player.badge === "queen" || player.isVIP) && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                        {player.badge === "queen" && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              letterSpacing: "0.08em",
+                              color: "#FFF8DC",
+                              background: "linear-gradient(135deg, rgba(255,215,0,0.35) 0%, rgba(255,215,0,0.15) 100%)",
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              border: "1px solid rgba(255,215,0,0.6)",
+                              boxShadow: "0 0 12px rgba(255,215,0,0.3)",
+                            }}
+                          >
+                            👑 QUEEN
+                          </span>
+                        )}
+                        {player.isVIP && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              letterSpacing: "0.08em",
+                              color: "#FFD700",
+                              background: "linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(255,215,0,0.08) 100%)",
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              border: "1px solid rgba(255,215,0,0.5)",
+                              boxShadow: "0 0 10px rgba(255,215,0,0.25)",
+                            }}
+                          >
+                            ⭐ VIP
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

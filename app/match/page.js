@@ -54,6 +54,24 @@ export default function MatchPage() {
       <div style={{ width: "100%", maxWidth: "720px" }}>
         {/* HEADER */}
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            style={{
+              position: "absolute",
+              left: "max(16px, env(safe-area-inset-left))",
+              top: "max(16px, env(safe-area-inset-top))",
+              background: "transparent",
+              border: "1px solid #333",
+              borderRadius: "8px",
+              padding: "8px 14px",
+              fontSize: "13px",
+              color: "#888",
+              cursor: "pointer",
+            }}
+          >
+            ← Kembali
+          </button>
           <h1 style={{ marginBottom: "4px" }}>PADEL KECIL 🎾</h1>
           <div style={{ fontSize: "14px", color: "#888" }}>
             Match Score
