@@ -47,6 +47,14 @@ const REGISTER_CODE =
 // Sementara disembunyikan agar bisa cek hasil cetak kartu tanpa upload foto
 const HIDE_PHOTO_UPLOAD = true;
 
+const MAX_NAME_LENGTH = 40;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 menit
+const RATE_LIMIT_MAX = 5; // maks. 5 submit per menit
+
+function normalizeName(value) {
+  return value.trim().replace(/\s{2,}/g, " ").slice(0, MAX_NAME_LENGTH);
+}
+
 async function compressImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -105,9 +113,11 @@ export default function RegisterPage() {
   const [photoPreview, setPhotoPreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [player, setPlayer] = useState(null); // data player setelah sukses daftar
+  const [fieldErrors, setFieldErrors] = useState({ code: "", name: "", phone: "" });
+  const [player, setPlayer] = useState(null);
   const [qrUrl, setQrUrl] = useState("");
 
+  const submitTimestampsRef = useRef([]);
   const frontRef = useRef(null);
   const backRef = useRef(null);
   const cardsWrapperRef = useRef(null);
@@ -288,27 +298,62 @@ export default function RegisterPage() {
     setPhotoPreview(url);
   };
 
+  const handleDaftarLagi = () => {
+    setPlayer(null);
+    setQrUrl("");
+    setCode("");
+    setName("");
+    setPhone("");
+    setError("");
+    setFieldErrors({ code: "", name: "", phone: "" });
+    setPhotoFile(null);
+    setPhotoPreview("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({ code: "", name: "", phone: "" });
 
     if (!navigator.onLine) {
       setError("Koneksi internet diperlukan untuk registrasi. Silakan cek koneksi.");
       return;
     }
 
-    if (code.trim().length !== 6 || code.trim() !== REGISTER_CODE) {
-      setError("kode salah, silakan coba lagi");
+    const now = Date.now();
+    submitTimestampsRef.current = submitTimestampsRef.current.filter(
+      (t) => now - t < RATE_LIMIT_WINDOW_MS
+    );
+    if (submitTimestampsRef.current.length >= RATE_LIMIT_MAX) {
+      setError("Terlalu banyak percobaan. Coba lagi dalam 1 menit.");
       return;
     }
+    submitTimestampsRef.current.push(now);
 
-    if (!name.trim() || !phone.trim()) {
-      setError("Lengkapi nama dan nomor HP terlebih dahulu.");
-      return;
-    }
+    const codeTrim = code.trim();
+    const codeValid = codeTrim.length === 6 && codeTrim === REGISTER_CODE;
+    const normalizedName = normalizeName(name);
+    const nameValid = !!normalizedName && normalizedName.length <= MAX_NAME_LENGTH;
     const digitsOnly = phone.replace(/\D/g, "");
-    if (digitsOnly.length < 10 || digitsOnly.length > 12) {
-      setError("Nomor HP harus 10–12 digit (contoh: 08xxxxxxxxxx).");
+    const phoneValid = digitsOnly.length >= 10 && digitsOnly.length <= 12;
+
+    if (!codeValid) {
+      setFieldErrors((prev) => ({ ...prev, code: "Kode harus 6 digit dan benar." }));
+    }
+    if (!nameValid) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        name: !normalizedName ? "Nama wajib diisi." : `Nama maksimal ${MAX_NAME_LENGTH} huruf.`,
+      }));
+    }
+    if (!phoneValid) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        phone: "Nomor HP harus 10–12 digit (contoh: 08xxxxxxxxxx).",
+      }));
+    }
+    if (!codeValid || !nameValid || !phoneValid) {
+      setError("Lengkapi data dengan benar.");
       return;
     }
 
@@ -338,8 +383,8 @@ export default function RegisterPage() {
 
       // simpan ke Firestore
       const docRef = await addDoc(collection(db, "players"), {
-        name: name.trim(),
-        phone: phone.trim(),
+        name: normalizedName,
+        phone: phone.replace(/\D/g, ""),
         photoUrl,
         badge: null,
         isVIP: false,
@@ -352,7 +397,7 @@ export default function RegisterPage() {
 
       setPlayer({
         id: playerId,
-        name: name.trim(),
+        name: normalizedName,
         photoUrl,
       });
       setQrUrl(qr);
@@ -386,7 +431,9 @@ export default function RegisterPage() {
           padding: player ? "28px 24px 24px" : "28px 24px 24px",
           borderRadius: "16px",
           border: isCardView ? "1px solid #e2e8f0" : "1px solid #222",
-          boxShadow: isCardView ? "0 4px 20px rgba(0,0,0,0.08)" : "none",
+          boxShadow: isCardView
+            ? "0 4px 20px rgba(0,0,0,0.08)"
+            : "0 0 40px rgba(79,209,197,0.2), 0 0 80px rgba(79,209,197,0.12), 0 0 120px rgba(79,209,197,0.06)",
         }}
       >
         {!player ? (
@@ -410,7 +457,9 @@ export default function RegisterPage() {
                 color: "#A0AEC0",
               }}
             >
-              Isi data singkat dan ambil selfie yang jelas. Kartu akan dibuat otomatis.
+              {HIDE_PHOTO_UPLOAD
+                ? "Isi data singkat. Kartu akan dibuat otomatis."
+                : "Isi data singkat dan ambil selfie yang jelas. Kartu akan dibuat otomatis."}
             </p>
 
             <form onSubmit={handleSubmit}>
@@ -427,11 +476,17 @@ export default function RegisterPage() {
                 </label>
                 <input
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={(e) => {
+                    setCode(e.target.value);
+                    if (fieldErrors.code) setFieldErrors((p) => ({ ...p, code: "" }));
+                  }}
                   placeholder="Masukkan kode dari host"
-                  style={inputStyle}
+                  style={{ ...inputStyle, borderColor: fieldErrors.code ? "#F56565" : undefined }}
                   maxLength={6}
                 />
+                {fieldErrors.code && (
+                  <div style={{ fontSize: 11, color: "#FEB2B2", marginTop: 4 }}>{fieldErrors.code}</div>
+                )}
               </div>
 
               <div style={{ marginBottom: "14px" }}>
@@ -443,14 +498,23 @@ export default function RegisterPage() {
                     color: "#A0AEC0",
                   }}
                 >
-                  Nama
+                  Nama (maks. {MAX_NAME_LENGTH} huruf)
                 </label>
                 <input
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  maxLength={MAX_NAME_LENGTH}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\s{2,}/g, " ").slice(0, MAX_NAME_LENGTH);
+                    setName(v);
+                    if (fieldErrors.name) setFieldErrors((p) => ({ ...p, name: "" }));
+                  }}
+                  onBlur={() => setName((prev) => prev.trim())}
                   placeholder="Nama panggilan"
-                  style={inputStyle}
+                  style={{ ...inputStyle, borderColor: fieldErrors.name ? "#F56565" : undefined }}
                 />
+                {fieldErrors.name && (
+                  <div style={{ fontSize: 11, color: "#FEB2B2", marginTop: 4 }}>{fieldErrors.name}</div>
+                )}
               </div>
 
               <div style={{ marginBottom: "14px" }}>
@@ -470,12 +534,16 @@ export default function RegisterPage() {
                   maxLength={12}
                   value={phone}
                   onChange={(e) => {
-                    const v = e.target.value.replace(/\D/g, "").slice(0, 12);
+                    const v = e.target.value.replace(/\s/g, "").replace(/\D/g, "").slice(0, 12);
                     setPhone(v);
+                    if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: "" }));
                   }}
                   placeholder="08xxxxxxxxxx"
-                  style={inputStyle}
+                  style={{ ...inputStyle, borderColor: fieldErrors.phone ? "#F56565" : undefined }}
                 />
+                {fieldErrors.phone && (
+                  <div style={{ fontSize: 11, color: "#FEB2B2", marginTop: 4 }}>{fieldErrors.phone}</div>
+                )}
               </div>
 
               {!HIDE_PHOTO_UPLOAD && (
@@ -895,6 +963,22 @@ export default function RegisterPage() {
                 }}
               >
                 {downloading === "jpeg" ? "Mengunduh..." : "Download JPEG"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDaftarLagi}
+                style={{
+                  ...secondaryButtonStyle,
+                  background: "transparent",
+                  border: "1px solid #94A3B8",
+                  color: "#94A3B8",
+                  minWidth: 168,
+                  padding: "12px 20px",
+                  borderRadius: 14,
+                  marginTop: 8,
+                }}
+              >
+                Daftar pemain lagi
               </button>
             </div>
           </>
