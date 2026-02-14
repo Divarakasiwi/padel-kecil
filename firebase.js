@@ -3,12 +3,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyXXXX",
-  authDomain: "padelkecilfery.firebaseapp.com",
-  projectId: "padelkecilfery",
-  storageBucket: "padelkecilfery.appspot.com",
-  messagingSenderId: "674058994745",
-  appId: "1:674058994745:web:xxxxxxxx",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "padelkecilfery.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "padelkecilfery",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "padelkecilfery.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "674058994745",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
 };
 
 const app = initializeApp(firebaseConfig);
