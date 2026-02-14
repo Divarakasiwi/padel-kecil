@@ -114,8 +114,8 @@ export default function RegisterPage() {
   const [downloading, setDownloading] = useState(""); // "pdf" | "jpeg" | ""
 
   const CARD_ASPECT = 1.586; // rasio kartu debit
-  const CAPTURE_WIDTH = 800;
-  const CAPTURE_GAP = 20;
+  const CAPTURE_WIDTH = 800; // lebar total dua panel (satu kartu utuh, gap 0)
+  const CAPTURE_GAP = 0;
   const CAPTURE_CARD_W = (CAPTURE_WIDTH - CAPTURE_GAP) / 2;
   const CAPTURE_CARD_H = Math.round(CAPTURE_CARD_W / CARD_ASPECT);
 
@@ -160,7 +160,7 @@ export default function RegisterPage() {
       back.style.width = prev.backWidth;
       back.style.height = prev.backHeight;
 
-      const gapPx = 20 * SCALE;
+      const gapPx = CAPTURE_GAP * SCALE;
       const cardW = CAPTURE_CARD_W * SCALE;
       const cardH = CAPTURE_CARD_H * SCALE;
       const totalW = CAPTURE_WIDTH * SCALE;
@@ -599,7 +599,7 @@ export default function RegisterPage() {
             </h2>
             <p
               style={{
-                marginBottom: "20px",
+                marginBottom: "24px",
                 textAlign: "center",
                 fontSize: "12px",
                 color: "#64748b",
@@ -608,21 +608,24 @@ export default function RegisterPage() {
               Simpan gambar atau PDF kartu ini untuk dicetak seperti kartu debit.
             </p>
 
+            {/* Satu kartu utuh (dua panel) – rapi seperti referensi */}
             <div
               ref={cardsWrapperRef}
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-                alignItems: "flex-start",
+                gap: 0,
+                alignItems: "stretch",
+                borderRadius: 24,
+                overflow: "hidden",
+                boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
               }}
             >
               {/* KARTU DEPAN */}
               <div
                 ref={frontRef}
                 style={{
-                  background: "radial-gradient(ellipse 80% 50% at 20% 20%, rgba(79,209,197,0.18) 0%, transparent 50%), #0B0B0B",
-                  borderRadius: 20,
+                  background: "#0B0B0B",
                   padding: 20,
                   color: "#E2E8F0",
                   position: "relative",
@@ -630,36 +633,23 @@ export default function RegisterPage() {
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.7)",
                   overflow: "hidden",
+                  borderTopLeftRadius: 24,
+                  borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Garis dekoratif tosca – terang & glow seperti referensi */}
+                {/* Garis dekoratif minimal – hanya sudut */}
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "140%",
-                    height: 3,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 50%, transparent 85%)",
-                    transform: "rotate(-32deg)",
-                    transformOrigin: "left center",
-                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.6)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: "90%",
+                    width: "100%",
                     height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.95) 0%, transparent 100%)",
-                    transform: "rotate(-22deg)",
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.7) 0%, transparent 70%)",
+                    transform: "rotate(-28deg)",
                     transformOrigin: "left center",
-                    marginTop: 28,
-                    boxShadow: "0 0 10px rgba(79,209,197,0.5)",
+                    boxShadow: "0 0 12px rgba(79,209,197,0.35)",
                   }}
                 />
                 <div
@@ -667,52 +657,12 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     bottom: 0,
-                    width: "110%",
-                    height: 3,
-                    background: "linear-gradient(90deg, transparent 25%, rgba(79,209,197,0.5) 50%, #4FD1C5 100%)",
-                    transform: "rotate(148deg)",
-                    transformOrigin: "right center",
-                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.5)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: 0,
-                    width: "75%",
+                    width: "100%",
                     height: 2,
-                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.8) 100%)",
-                    transform: "rotate(158deg)",
+                    background: "linear-gradient(90deg, transparent 30%, rgba(79,209,197,0.6) 100%)",
+                    transform: "rotate(152deg)",
                     transformOrigin: "right center",
-                    marginBottom: 22,
-                    boxShadow: "0 0 8px rgba(79,209,197,0.4)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "48%",
-                    width: "45%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.6))",
-                    transform: "rotate(90deg)",
-                    transformOrigin: "right center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    bottom: "28%",
-                    width: "38%",
-                    height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.5), transparent)",
-                    transform: "rotate(-90deg)",
-                    transformOrigin: "left center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 10px rgba(79,209,197,0.3)",
                   }}
                 />
 
@@ -814,8 +764,7 @@ export default function RegisterPage() {
               <div
                 ref={backRef}
                 style={{
-                  background: "radial-gradient(ellipse 70% 60% at 80% 80%, rgba(79,209,197,0.18) 0%, transparent 50%), #0B0B0B",
-                  borderRadius: 20,
+                  background: "#0B0B0B",
                   padding: 20,
                   color: "#E2E8F0",
                   position: "relative",
@@ -824,36 +773,23 @@ export default function RegisterPage() {
                   flexDirection: "column",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.7)",
                   overflow: "hidden",
+                  borderTopRightRadius: 24,
+                  borderBottomRightRadius: 24,
                 }}
               >
-                {/* Garis dekoratif tosca – terang & glow */}
+                {/* Garis dekoratif minimal – hanya sudut */}
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
                     top: 0,
-                    width: "130%",
-                    height: 3,
-                    background: "linear-gradient(90deg, transparent 20%, rgba(79,209,197,0.5) 50%, #4FD1C5 100%)",
-                    transform: "rotate(32deg)",
-                    transformOrigin: "right center",
-                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.6)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: 0,
-                    width: "85%",
+                    width: "100%",
                     height: 2,
-                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.95) 100%)",
-                    transform: "rotate(22deg)",
+                    background: "linear-gradient(90deg, transparent 30%, rgba(79,209,197,0.7) 100%)",
+                    transform: "rotate(28deg)",
                     transformOrigin: "right center",
-                    marginTop: 26,
-                    boxShadow: "0 0 10px rgba(79,209,197,0.5)",
+                    boxShadow: "0 0 12px rgba(79,209,197,0.35)",
                   }}
                 />
                 <div
@@ -861,52 +797,12 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     bottom: 0,
-                    width: "120%",
-                    height: 3,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 75%, transparent 100%)",
-                    transform: "rotate(-148deg)",
-                    transformOrigin: "left center",
-                    boxShadow: "0 0 16px #4FD1C5, 0 0 32px rgba(79,209,197,0.5)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    bottom: 0,
-                    width: "70%",
+                    width: "100%",
                     height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.8) 0%, transparent 100%)",
-                    transform: "rotate(-158deg)",
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.6) 0%, transparent 70%)",
+                    transform: "rotate(-152deg)",
                     transformOrigin: "left center",
-                    marginBottom: 20,
-                    boxShadow: "0 0 8px rgba(79,209,197,0.4)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: "46%",
-                    width: "42%",
-                    height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.6), transparent)",
-                    transform: "rotate(-90deg)",
-                    transformOrigin: "left center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: "26%",
-                    width: "36%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.5))",
-                    transform: "rotate(90deg)",
-                    transformOrigin: "right center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 10px rgba(79,209,197,0.3)",
                   }}
                 />
 
@@ -962,8 +858,8 @@ export default function RegisterPage() {
             <div
               style={{
                 display: "flex",
-                gap: 12,
-                marginTop: 24,
+                gap: 14,
+                marginTop: 28,
                 flexWrap: "wrap",
                 justifyContent: "center",
               }}
@@ -975,7 +871,10 @@ export default function RegisterPage() {
                 style={{
                   ...buttonStyle,
                   background: downloading ? "#2D3748" : "#4FD1C5",
-                  minWidth: 160,
+                  color: downloading ? "#9CA3AF" : "#fff",
+                  minWidth: 168,
+                  padding: "14px 20px",
+                  borderRadius: 14,
                 }}
               >
                 {downloading === "pdf" ? "Mengunduh..." : "Download PDF"}
@@ -986,10 +885,13 @@ export default function RegisterPage() {
                 disabled={!!downloading}
                 style={{
                   ...secondaryButtonStyle,
-                  background: "transparent",
+                  background: "#fff",
+                  border: "2px solid #4FD1C5",
                   borderColor: "#4FD1C5",
                   color: "#4FD1C5",
-                  minWidth: 160,
+                  minWidth: 168,
+                  padding: "14px 20px",
+                  borderRadius: 14,
                 }}
               >
                 {downloading === "jpeg" ? "Mengunduh..." : "Download JPEG"}
