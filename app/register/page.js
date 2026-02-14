@@ -912,14 +912,15 @@ export default function RegisterPage() {
 
                 <div
                   style={{
-                    width: "70%",
-                    height: "70%",
+                    width: "52%",
+                    aspectRatio: "1",
+                    flexShrink: 0,
                     background: "#000",
                     borderRadius: 12,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 8,
+                    padding: 10,
                     position: "relative",
                     zIndex: 1,
                   }}
@@ -927,19 +928,33 @@ export default function RegisterPage() {
                   <img
                     src={qrUrl}
                     alt="QR Player"
-                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                   />
                 </div>
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
+                    fontWeight: 600,
                     textAlign: "center",
-                    opacity: 0.85,
+                    opacity: 0.95,
+                    position: "relative",
+                    zIndex: 1,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Scan untuk bermain
+                </div>
+                <div
+                  style={{
+                    fontSize: 9,
+                    textAlign: "center",
+                    opacity: 0.75,
                     position: "relative",
                     zIndex: 1,
                   }}
                 >
-                  Scan QR ini di panel host PADEL KECIL untuk bergabung ke court.
+                  Panel host PADEL KECIL
                 </div>
               </div>
             </div>
