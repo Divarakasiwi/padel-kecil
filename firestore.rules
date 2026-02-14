@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- PLAYERS ----------
+    // Baca: diperlukan untuk scanner QR, picker pemain, dan kelola badge.
+    // Buat: hanya saat registrasi (dengan field yang dibatasi).
+    // Update: hanya field badge dan isVIP (kelola badge host).
+    // Hapus: tidak diizinkan dari client (hindari penghapusan sembarangan).
+    match /players/{playerId} {
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'photoUrl', 'badge', 'isVIP'])
+        && request.resource.data.name is string
+        && request.resource.data.phone is string
+        && request.resource.data.photoUrl is string
+        && request.resource.data.badge == null
+        && request.resource.data.isVIP == false
+        && request.resource.data.name.size() <= 200
+        && request.resource.data.phone.size() >= 10
+        && request.resource.data.phone.size() <= 20;
+
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['badge', 'isVIP'])
+        && (request.resource.data.badge == null || request.resource.data.badge == 'queen')
+        && request.resource.data.isVIP is bool;
+
+      allow delete: if false;
+    }
+
+    // ---------- MATCHES ----------
+    // Hanya boleh menambah dokumen (hasil match). Tidak boleh update/hapus dari client.
+    match /matches/{matchId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAny(['dayKey', 'finishedAt', 'courtName', 'score1', 'score2', 'winner', 'team1PlayerIds', 'team2PlayerIds']);
+      allow update, delete: if false;
+    }
+  }
+}
