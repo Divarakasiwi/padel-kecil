@@ -1,9 +1,11 @@
 "use client";
 console.log("🔥 PAGE.JS TERBARU AKTIF 🔥");
 import { collection, getDocs, addDoc } from "firebase/firestore";
-
+import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useState, useRef, useMemo } from "react";
+
+const HOST_AUTH_KEY = "padelkecil:host:auth";
 
 const SLOT_ORDER = ["A", "B", "C", "D"];
 const SLOT_COLORS = {
@@ -30,7 +32,7 @@ const SLOT_COLORS = {
 };
 
 
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 // ===== HELPER: key harian untuk menyimpan state lokal =====
@@ -74,6 +76,7 @@ const initialCourtState = {
   finished: false,
 };
 export default function Dashboard() {
+  const router = useRouter();
   const [now, setNow] = useState(new Date());
   /* =====================
      COURT STATE
@@ -88,6 +91,8 @@ export default function Dashboard() {
   const [court1, setCourt1] = useState(initialCourtState);
   const [extraCourts, setExtraCourts] = useState([]); // COURT 2–8
   const [mounted, setMounted] = useState(false);
+  const [allPlayers, setAllPlayers] = useState([]);
+  const [showBadgeManager, setShowBadgeManager] = useState(false);
 
   // status kecil di pojok (online/offline/error/sync)
   const [systemStatus, setSystemStatus] = useState({
@@ -97,6 +102,17 @@ export default function Dashboard() {
   const [showStatusDetail, setShowStatusDetail] = useState(false);
   const [isSyncingMatches, setIsSyncingMatches] = useState(false);
   const [pendingMatchesCount, setPendingMatchesCount] = useState(0);
+
+  // ====== CEK LOGIN HOST: redirect ke /host jika belum login ======
+  const [hostChecked, setHostChecked] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!sessionStorage.getItem(HOST_AUTH_KEY)) {
+      router.replace("/host");
+      return;
+    }
+    setHostChecked(true);
+  }, [router]);
 
   // ====== FUNGSI SYNC MATCH QUEUE KE FIRESTORE ======
   const trySyncMatchQueue = async () => {
@@ -228,6 +244,20 @@ useEffect(() => {
   }
 }, [court1, extraCourts, storageKey]);
 
+// ===== FETCH DAFTAR PEMAIN (untuk picker + kelola badge) =====
+useEffect(() => {
+  const fetchPlayers = async () => {
+    try {
+      const snap = await getDocs(collection(db, "players"));
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setAllPlayers(list);
+    } catch (e) {
+      console.error("Gagal fetch players", e);
+    }
+  };
+  fetchPlayers();
+}, []);
+
 // ===== HANDLE FINISH MATCH: SIMPAN KE ANTRIAN MATCH =====
 const handleMatchFinished = (result) => {
   const queue = loadMatchQueue();
@@ -324,6 +354,24 @@ const updateExtraCourtState = (id, updater) => {
     { team: "Siska + Winarto Sudehi", wins: 1 },
   ];
 
+  if (!hostChecked) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#0B0B0B",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#4FD1C5",
+          fontSize: "14px",
+        }}
+      >
+        Memeriksa akses...
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -336,7 +384,24 @@ const updateExtraCourtState = (id, updater) => {
       }}
     >
       {/* HEADER */}
-      <Header now={now} mounted={mounted} />
+      <Header
+        now={now}
+        mounted={mounted}
+        onOpenBadgeManager={() => setShowBadgeManager(true)}
+      />
+
+      {/* MODAL KELOLA BADGE */}
+      {showBadgeManager && (
+        <BadgeManagerModal
+          allPlayers={allPlayers}
+          onRefresh={() => {
+            getDocs(collection(db, "players")).then((snap) => {
+              setAllPlayers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            });
+          }}
+          onClose={() => setShowBadgeManager(false)}
+        />
+      )}
 
       {/* STATUS INDICATOR KECIL DI POJOK */}
       <StatusIndicator
@@ -380,6 +445,7 @@ const updateExtraCourtState = (id, updater) => {
               initialCourt={initialCourtState}
               reportStatus={setSystemStatus}
               onMatchFinished={handleMatchFinished}
+              allPlayers={allPlayers}
             />
           </div>
 
@@ -431,6 +497,7 @@ const updateExtraCourtState = (id, updater) => {
                 initialCourt={initialCourtState}
                 reportStatus={setSystemStatus}
                 onMatchFinished={handleMatchFinished}
+                allPlayers={allPlayers}
               />
             </div>
           ))}
@@ -553,7 +620,7 @@ const updateExtraCourtState = (id, updater) => {
    COMPONENTS
 ===================== */
 
-function Header({ now,mounted }) {
+function Header({ now, mounted, onOpenBadgeManager }) {
   return (
     <div
       style={{
@@ -561,20 +628,205 @@ function Header({ now,mounted }) {
         justifyContent: "space-between",
         alignItems: "baseline",
         marginBottom: "28px",
+        flexWrap: "wrap",
+        gap: "12px",
       }}
     >
       <h1 style={{ margin: 0, fontWeight: 600 }}>
         PADEL KECIL 🎾 By Fery
       </h1>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {onOpenBadgeManager && (
+          <button
+            type="button"
+            onClick={onOpenBadgeManager}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "10px",
+              border: "1px solid #D6C7A1",
+              background: "#1A1810",
+              color: "#D6C7A1",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Kelola Badge
+          </button>
+        )}
+        <div
+          style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: "15px",
+            color: "#4FD1C5",
+          }}
+        >
+          {mounted ? now.toLocaleTimeString("id-ID") : "--:--"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BadgeManagerModal({ allPlayers, onRefresh, onClose }) {
+  const [savingId, setSavingId] = useState(null);
+
+  const toggleBadge = async (player) => {
+    const newBadge = player.badge === "queen" ? null : "queen";
+    setSavingId(player.id);
+    try {
+      await updateDoc(doc(db, "players", player.id), { badge: newBadge });
+      onRefresh?.();
+    } catch (e) {
+      console.error(e);
+      alert("Gagal mengubah badge. Coba lagi.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const toggleVIP = async (player) => {
+    const newVIP = !(player.isVIP === true);
+    setSavingId(player.id);
+    try {
+      await updateDoc(doc(db, "players", player.id), { isVIP: newVIP });
+      onRefresh?.();
+    } catch (e) {
+      console.error(e);
+      alert("Gagal mengubah VIP. Coba lagi.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const list = (allPlayers || []).filter((p) => p.name && String(p.name).trim() !== "");
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 100,
+        padding: "max(24px, env(safe-area-inset-top))",
+      }}
+    >
       <div
         style={{
-          fontFamily: "'Courier New', monospace",
-          fontSize: "15px",
-          color: "#4FD1C5",
+          background: "#121212",
+          borderRadius: "18px",
+          border: "1px solid #333",
+          maxWidth: "480px",
+          width: "100%",
+          maxHeight: "85vh",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 0 40px rgba(79,209,197,0.2)",
         }}
       >
-       {mounted ? now.toLocaleTimeString("id-ID") : "--:--"}
-
+        <div
+          style={{
+            padding: "20px 20px 12px",
+            borderBottom: "1px solid #222",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: "18px" }}>Kelola Badge</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "1px solid #444",
+              borderRadius: "8px",
+              color: "#888",
+              padding: "8px 14px",
+              cursor: "pointer",
+              fontSize: "13px",
+            }}
+          >
+            Tutup
+          </button>
+        </div>
+        <div style={{ overflow: "auto", padding: "16px", flex: 1 }}>
+          <p style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>
+            Klik badge untuk mengaktifkan/nonaktifkan. Perubahan tersimpan langsung ke server.
+          </p>
+          {list.length === 0 ? (
+            <p style={{ color: "#666", fontSize: "14px" }}>Belum ada pemain terdaftar.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {list.map((p) => (
+                <div
+                  key={p.id}
+                  style={{
+                    background: "#0B0B0B",
+                    borderRadius: "12px",
+                    padding: "14px 16px",
+                    border: "1px solid #222",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ flex: "1 1 140px", minWidth: 0 }}>
+                    <div style={{ fontWeight: 600 }}>{p.name}</div>
+                    {p.phone && (
+                      <div style={{ fontSize: "12px", color: "#666" }}>{p.phone}</div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      disabled={savingId === p.id}
+                      onClick={() => toggleBadge(p)}
+                      title={p.badge === "queen" ? "Lepas Queen" : "Pasang Queen"}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "999px",
+                        border: "1px solid",
+                        background: p.badge === "queen" ? "#2A2520" : "transparent",
+                        color: p.badge === "queen" ? "#FFF8DC" : "#666",
+                        borderColor: p.badge === "queen" ? "#D6C7A1" : "#444",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: savingId === p.id ? "wait" : "pointer",
+                      }}
+                    >
+                      👑 Queen
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingId === p.id}
+                      onClick={() => toggleVIP(p)}
+                      title={p.isVIP ? "Lepas VIP" : "Pasang VIP"}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "999px",
+                        border: "1px solid",
+                        background: p.isVIP ? "#2A2510" : "transparent",
+                        color: p.isVIP ? "#FFD700" : "#666",
+                        borderColor: p.isVIP ? "#D6A100" : "#444",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: savingId === p.id ? "wait" : "pointer",
+                      }}
+                    >
+                      ⭐ VIP
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -587,10 +839,10 @@ function CourtCard({
   initialCourt,
   reportStatus,
   onMatchFinished,
+  allPlayers = [],
 }) {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
 
-  const [allPlayers, setAllPlayers] = useState([]);
   const addTestPlayer = () => {
 
   if (court.team1.length >= 2) return;
@@ -635,20 +887,6 @@ useEffect(() => {
   court.team2.forEach((p) => ids.add(p.id));
   activePlayerIdsRef.current = ids;
 }, [court.team1, court.team2]);
-useEffect(() => {
-  const fetchPlayers = async () => {
-    const snap = await getDocs(collection(db, "players"));
-    const list = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    console.log("🔥 ALL PLAYERS:", list);
-    setAllPlayers(list);
-  };
-
-  fetchPlayers();
-}, []);
 
 useEffect(() => {
   if (!showScanner || !scanTargetRef.current) return;
