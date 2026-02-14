@@ -693,7 +693,7 @@ export default function RegisterPage() {
               <div
                 ref={frontRef}
                 style={{
-                  background: "#0B0B0B",
+                  background: "radial-gradient(ellipse 100% 80% at 0% 0%, rgba(79,209,197,0.22) 0%, transparent 55%), #0B0B0B",
                   padding: 20,
                   color: "#E2E8F0",
                   position: "relative",
@@ -706,18 +706,32 @@ export default function RegisterPage() {
                   borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Garis dekoratif minimal – hanya sudut */}
+                {/* Garis dekoratif tosca – estetik */}
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "100%",
-                    height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.7) 0%, transparent 70%)",
-                    transform: "rotate(-28deg)",
+                    width: "120%",
+                    height: 3,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 50%, transparent 100%)",
+                    transform: "rotate(-30deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 12px rgba(79,209,197,0.35)",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.55)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "75%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.9) 0%, transparent 100%)",
+                    transform: "rotate(-18deg)",
+                    transformOrigin: "left center",
+                    marginTop: 22,
+                    boxShadow: "0 0 10px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
@@ -725,12 +739,52 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     bottom: 0,
-                    width: "100%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent 30%, rgba(79,209,197,0.6) 100%)",
-                    transform: "rotate(152deg)",
+                    width: "110%",
+                    height: 3,
+                    background: "linear-gradient(90deg, transparent 35%, rgba(79,209,197,0.5) 65%, #4FD1C5 100%)",
+                    transform: "rotate(148deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 10px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.5)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    width: "65%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.75) 100%)",
+                    transform: "rotate(158deg)",
+                    transformOrigin: "right center",
+                    marginBottom: 18,
+                    boxShadow: "0 0 8px rgba(79,209,197,0.35)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "45%",
+                    width: "45%",
+                    height: 1.5,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.5))",
+                    transform: "rotate(90deg)",
+                    transformOrigin: "right center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: "35%",
+                    width: "38%",
+                    height: 1.5,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.45), transparent)",
+                    transform: "rotate(-90deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.25)",
                   }}
                 />
 
@@ -832,7 +886,7 @@ export default function RegisterPage() {
               <div
                 ref={backRef}
                 style={{
-                  background: "#0B0B0B",
+                  background: "radial-gradient(ellipse 90% 70% at 100% 100%, rgba(79,209,197,0.22) 0%, transparent 55%), #0B0B0B",
                   padding: 20,
                   color: "#E2E8F0",
                   position: "relative",
@@ -846,18 +900,32 @@ export default function RegisterPage() {
                   borderBottomRightRadius: 24,
                 }}
               >
-                {/* Garis dekoratif minimal – hanya sudut */}
+                {/* Garis dekoratif tosca – estetik */}
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
                     top: 0,
-                    width: "100%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent 30%, rgba(79,209,197,0.7) 100%)",
-                    transform: "rotate(28deg)",
+                    width: "115%",
+                    height: 3,
+                    background: "linear-gradient(90deg, transparent 45%, rgba(79,209,197,0.5) 55%, #4FD1C5 100%)",
+                    transform: "rotate(30deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 12px rgba(79,209,197,0.35)",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.55)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    width: "70%",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.9) 100%)",
+                    transform: "rotate(20deg)",
+                    transformOrigin: "right center",
+                    marginTop: 20,
+                    boxShadow: "0 0 10px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
@@ -865,12 +933,52 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     bottom: 0,
-                    width: "100%",
-                    height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.6) 0%, transparent 70%)",
-                    transform: "rotate(-152deg)",
+                    width: "105%",
+                    height: 3,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 65%, transparent 100%)",
+                    transform: "rotate(-148deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 10px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.5)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: 0,
+                    width: "60%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.75) 0%, transparent 100%)",
+                    transform: "rotate(-158deg)",
+                    transformOrigin: "left center",
+                    marginBottom: 16,
+                    boxShadow: "0 0 8px rgba(79,209,197,0.35)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: "48%",
+                    width: "42%",
+                    height: 1.5,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.5), transparent)",
+                    transform: "rotate(-90deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: "32%",
+                    width: "35%",
+                    height: 1.5,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.45))",
+                    transform: "rotate(90deg)",
+                    transformOrigin: "right center",
+                    boxShadow: "0 0 6px rgba(79,209,197,0.25)",
                   }}
                 />
 
