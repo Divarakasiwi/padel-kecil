@@ -102,7 +102,7 @@ async function compressImage(file, maxSize = 1024) {
 
 function createQrUrl(playerId) {
   const data = encodeURIComponent(playerId);
-  return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${data}`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${data}&color=000000&bgcolor=FFFFFF`;
 }
 
 export default function RegisterPage() {
@@ -706,18 +706,18 @@ export default function RegisterPage() {
                   borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Garis dekoratif tosca – estetik */}
+                {/* Garis tosca tebal + glow kuat */}
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "120%",
-                    height: 3,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 50%, transparent 100%)",
-                    transform: "rotate(-30deg)",
+                    width: "130%",
+                    height: 5,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.8) 40%, transparent 85%)",
+                    transform: "rotate(-32deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 18px rgba(79,209,197,0.55)",
+                    boxShadow: "0 0 24px #4FD1C5, 0 0 48px rgba(79,209,197,0.7), 0 0 72px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
@@ -725,13 +725,27 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "75%",
-                    height: 2,
+                    width: "85%",
+                    height: 4,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.6) 70%, transparent 100%)",
+                    transform: "rotate(-20deg)",
+                    transformOrigin: "left center",
+                    marginTop: 28,
+                    boxShadow: "0 0 20px rgba(79,209,197,0.8), 0 0 40px rgba(79,209,197,0.5)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "50%",
+                    height: 3,
                     background: "linear-gradient(90deg, rgba(79,209,197,0.9) 0%, transparent 100%)",
-                    transform: "rotate(-18deg)",
+                    transform: "rotate(-8deg)",
                     transformOrigin: "left center",
-                    marginTop: 22,
-                    boxShadow: "0 0 10px rgba(79,209,197,0.4)",
+                    marginTop: 52,
+                    boxShadow: "0 0 16px rgba(79,209,197,0.6)",
                   }}
                 />
                 <div
@@ -739,52 +753,66 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     bottom: 0,
-                    width: "110%",
+                    width: "120%",
+                    height: 5,
+                    background: "linear-gradient(90deg, transparent 25%, rgba(79,209,197,0.6) 55%, #4FD1C5 100%)",
+                    transform: "rotate(146deg)",
+                    transformOrigin: "right center",
+                    boxShadow: "0 0 24px #4FD1C5, 0 0 48px rgba(79,209,197,0.7), 0 0 72px rgba(79,209,197,0.4)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    width: "72%",
+                    height: 4,
+                    background: "linear-gradient(90deg, transparent 20%, rgba(79,209,197,0.7) 60%, #4FD1C5 100%)",
+                    transform: "rotate(156deg)",
+                    transformOrigin: "right center",
+                    marginBottom: 22,
+                    boxShadow: "0 0 20px rgba(79,209,197,0.8), 0 0 40px rgba(79,209,197,0.5)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    width: "38%",
                     height: 3,
-                    background: "linear-gradient(90deg, transparent 35%, rgba(79,209,197,0.5) 65%, #4FD1C5 100%)",
-                    transform: "rotate(148deg)",
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.85) 100%)",
+                    transform: "rotate(166deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 18px rgba(79,209,197,0.5)",
+                    marginBottom: 44,
+                    boxShadow: "0 0 14px rgba(79,209,197,0.6)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
-                    bottom: 0,
-                    width: "65%",
-                    height: 2,
-                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.75) 100%)",
-                    transform: "rotate(158deg)",
-                    transformOrigin: "right center",
-                    marginBottom: 18,
-                    boxShadow: "0 0 8px rgba(79,209,197,0.35)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "45%",
-                    width: "45%",
-                    height: 1.5,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.5))",
+                    top: "42%",
+                    width: "50%",
+                    height: 3,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.7))",
                     transform: "rotate(90deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 20px rgba(79,209,197,0.5)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
-                    bottom: "35%",
-                    width: "38%",
-                    height: 1.5,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.45), transparent)",
+                    bottom: "30%",
+                    width: "42%",
+                    height: 3,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.6), transparent)",
                     transform: "rotate(-90deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.25)",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.45)",
                   }}
                 />
 
@@ -900,18 +928,18 @@ export default function RegisterPage() {
                   borderBottomRightRadius: 24,
                 }}
               >
-                {/* Garis dekoratif tosca – estetik */}
+                {/* Garis tosca tebal + glow kuat */}
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
                     top: 0,
-                    width: "115%",
-                    height: 3,
-                    background: "linear-gradient(90deg, transparent 45%, rgba(79,209,197,0.5) 55%, #4FD1C5 100%)",
-                    transform: "rotate(30deg)",
+                    width: "125%",
+                    height: 5,
+                    background: "linear-gradient(90deg, transparent 35%, rgba(79,209,197,0.7) 50%, #4FD1C5 100%)",
+                    transform: "rotate(32deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 18px rgba(79,209,197,0.55)",
+                    boxShadow: "0 0 24px #4FD1C5, 0 0 48px rgba(79,209,197,0.7), 0 0 72px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
@@ -919,13 +947,27 @@ export default function RegisterPage() {
                     position: "absolute",
                     right: 0,
                     top: 0,
-                    width: "70%",
-                    height: 2,
+                    width: "80%",
+                    height: 4,
+                    background: "linear-gradient(90deg, transparent 25%, rgba(79,209,197,0.7) 50%, #4FD1C5 100%)",
+                    transform: "rotate(22deg)",
+                    transformOrigin: "right center",
+                    marginTop: 26,
+                    boxShadow: "0 0 20px rgba(79,209,197,0.8), 0 0 40px rgba(79,209,197,0.5)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    width: "45%",
+                    height: 3,
                     background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.9) 100%)",
-                    transform: "rotate(20deg)",
+                    transform: "rotate(10deg)",
                     transformOrigin: "right center",
-                    marginTop: 20,
-                    boxShadow: "0 0 10px rgba(79,209,197,0.4)",
+                    marginTop: 50,
+                    boxShadow: "0 0 16px rgba(79,209,197,0.6)",
                   }}
                 />
                 <div
@@ -933,52 +975,66 @@ export default function RegisterPage() {
                     position: "absolute",
                     left: 0,
                     bottom: 0,
-                    width: "105%",
+                    width: "115%",
+                    height: 5,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.65) 45%, transparent 80%)",
+                    transform: "rotate(-146deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 24px #4FD1C5, 0 0 48px rgba(79,209,197,0.7), 0 0 72px rgba(79,209,197,0.4)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: 0,
+                    width: "68%",
+                    height: 4,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.6) 50%, transparent 100%)",
+                    transform: "rotate(-156deg)",
+                    transformOrigin: "left center",
+                    marginBottom: 20,
+                    boxShadow: "0 0 20px rgba(79,209,197,0.8), 0 0 40px rgba(79,209,197,0.5)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: 0,
+                    width: "35%",
                     height: 3,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 65%, transparent 100%)",
-                    transform: "rotate(-148deg)",
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.85) 0%, transparent 100%)",
+                    transform: "rotate(-166deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 18px rgba(79,209,197,0.5)",
+                    marginBottom: 42,
+                    boxShadow: "0 0 14px rgba(79,209,197,0.6)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
-                    bottom: 0,
-                    width: "60%",
-                    height: 2,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.75) 0%, transparent 100%)",
-                    transform: "rotate(-158deg)",
-                    transformOrigin: "left center",
-                    marginBottom: 16,
-                    boxShadow: "0 0 8px rgba(79,209,197,0.35)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: "48%",
-                    width: "42%",
-                    height: 1.5,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.5), transparent)",
+                    top: "44%",
+                    width: "48%",
+                    height: 3,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.65), transparent)",
                     transform: "rotate(-90deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.3)",
+                    boxShadow: "0 0 20px rgba(79,209,197,0.5)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
-                    bottom: "32%",
-                    width: "35%",
-                    height: 1.5,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.45))",
+                    bottom: "28%",
+                    width: "40%",
+                    height: 3,
+                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.6))",
                     transform: "rotate(90deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 6px rgba(79,209,197,0.25)",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.45)",
                   }}
                 />
 
