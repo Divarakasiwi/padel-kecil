@@ -1,13 +1,7 @@
+/* Aplikasi ini selalu tema gelap (tidak ikut tema sistem) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0B0B0B;
+  --foreground: #ededed;
 }
 
 html,
@@ -42,8 +36,78 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+/* Warna chrome browser (address bar, status bar) ikut gelap */
+html {
+  color-scheme: dark;
+}
+
+/* ===== Dashboard: badge & court scroll ===== */
+.queen-badge {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #fff8dc;
+  text-shadow:
+    0 0 4px rgba(255, 255, 255, 0.9),
+    0 0 8px rgba(255, 215, 0, 0.7),
+    0 0 14px rgba(255, 215, 0, 0.5);
+  animation: queenGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes queenGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 3px rgba(255, 255, 255, 0.8),
+      0 0 6px rgba(255, 215, 0, 0.5),
+      0 0 10px rgba(255, 215, 0, 0.35);
   }
+  50% {
+    text-shadow:
+      0 0 6px rgba(255, 255, 255, 1),
+      0 0 14px rgba(255, 215, 0, 1),
+      0 0 22px rgba(255, 215, 0, 0.85);
+  }
+}
+
+.vip-badge-slot {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffd700;
+  text-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+  animation: vipBreathing 2.2s ease-in-out infinite;
+}
+
+@keyframes vipBreathing {
+  0%, 100% {
+    opacity: 0.9;
+    text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
+  }
+}
+
+@keyframes winnerGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 12px rgba(255, 255, 255, 0.25),
+      0 0 24px rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 22px rgba(255, 255, 255, 0.6),
+      0 0 48px rgba(255, 255, 255, 0.6);
+  }
+}
+
+.court-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.court-scroll::-webkit-scrollbar {
+  display: none;
 }

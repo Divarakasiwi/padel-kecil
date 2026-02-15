@@ -11,61 +11,67 @@ export const metadata = {
   description: "Padel community match system",
 };
 
-/** Viewport untuk tablet/iPad: lebar device, skala tetap */
+/** Viewport untuk tablet/iPad: lebar device, skala tetap + themeColor untuk address bar */
 export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#0B0B0B",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body className={inter.className}>
-        
-        {/* HEADER */}
-<div
-  style={{
-    textAlign: "center",
-    padding: "20px 0 18px",
-    fontWeight: 700,
-    letterSpacing: "2.5px",
-    fontSize: "22px",
-    color: "#E8FFF9",
-    textShadow: `
-      0 0 6px rgba(79,209,197,0.6),
-      0 0 16px rgba(79,209,197,0.4)
-    `,
-  }}
->
-  PADEL KECIL
-  <div
-    style={{
-      marginTop: "4px",
-      fontSize: "12px",
-      fontWeight: 400,
-      letterSpacing: "1.2px",
-      color: "#9FF5EA",
-      opacity: 0.85,
-    }}
-  >
-    by Fery
-  </div>
-
-  {/* GARIS HIAS */}
-  <div
-    style={{
-      margin: "12px auto 0",
-      width: "120px",
-      height: "2px",
-      borderRadius: "999px",
-      background:
-        "linear-gradient(90deg, transparent, #4FD1C5, transparent)",
-      boxShadow: "0 0 12px rgba(79,209,197,0.6)",
-    }}
-  />
-</div>
+      <body className={inter.className} style={{ background: "#0B0B0B" }}>
+        {/* HEADER – Padel Kecil by Fery, tengah, besar & estetik */}
+        <header
+          style={{
+            background: "#0B0B0B",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "28px 24px 24px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "clamp(26px, 6vw, 36px)",
+              fontWeight: 700,
+              letterSpacing: "0.2em",
+              color: "#E8FFF9",
+              textShadow: "0 0 12px rgba(79,209,197,0.5), 0 0 24px rgba(79,209,197,0.25)",
+              lineHeight: 1.2,
+            }}
+          >
+            Padel Kecil
+          </div>
+          <div
+            style={{
+              marginTop: "6px",
+              fontSize: "clamp(13px, 2.5vw, 16px)",
+              fontWeight: 400,
+              letterSpacing: "0.35em",
+              color: "#9FF5EA",
+              opacity: 0.9,
+              textTransform: "lowercase",
+            }}
+          >
+            by Fery
+          </div>
+          <div
+            style={{
+              marginTop: "16px",
+              width: "100px",
+              height: "2px",
+              borderRadius: "999px",
+              background: "linear-gradient(90deg, transparent, #4FD1C5, transparent)",
+              boxShadow: "0 0 14px rgba(79,209,197,0.5)",
+            }}
+          />
+        </header>
 
 
         {/* CONTENT */}
