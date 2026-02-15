@@ -56,7 +56,6 @@ export default function RootLayout({ children }) {
               letterSpacing: "0.35em",
               color: "#9FF5EA",
               opacity: 0.9,
-              textTransform: "lowercase",
             }}
           >
             by Fery
@@ -72,7 +71,6 @@ export default function RootLayout({ children }) {
             }}
           />
         </header>
-
 
         {/* CONTENT */}
         {children}

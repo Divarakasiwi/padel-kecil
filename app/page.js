@@ -357,6 +357,19 @@ const updateExtraCourtState = (id, updater) => {
         pendingCount={pendingMatchesCount}
       />
 
+      {/* TAGLINE – di atas kiri Court 1 */}
+      <div
+        style={{
+          marginBottom: "12px",
+          fontSize: "clamp(11px, 2vw, 13px)",
+          fontWeight: 400,
+          letterSpacing: "0.2em",
+          color: "rgba(159,245,234,0.6)",
+        }}
+      >
+        match & community
+      </div>
+
       {/* COURTS – HORIZONTAL SCROLL */}
       <div
         style={{
