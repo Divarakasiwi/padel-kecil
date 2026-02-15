@@ -174,8 +174,8 @@ export default function ClaimHistoryModal({ open, onClose }) {
           <p style={{ fontSize: "10px", color: "#666", marginBottom: "6px" }}>
             Ketuk untuk memilih tanggal (kalender akan muncul)
           </p>
-          <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
-            <label htmlFor="claim-date-from" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px", cursor: "pointer", minWidth: 0 }}>
+          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
+            <label htmlFor="claim-date-from" style={{ display: "flex", flexDirection: "column", gap: "2px", cursor: "pointer" }}>
               <span style={{ color: "#9A9A9A", fontSize: "11px" }}>Dari</span>
               <input
                 id="claim-date-from"
@@ -183,9 +183,9 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
                 style={{
-                  width: "100%",
+                  width: "130px",
                   minHeight: "32px",
-                  padding: "6px 8px",
+                  padding: "6px 10px",
                   background: "#0B0B0B",
                   border: "1px solid #333",
                   borderRadius: "8px",
@@ -196,7 +196,7 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 }}
               />
             </label>
-            <label htmlFor="claim-date-to" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px", cursor: "pointer", minWidth: 0 }}>
+            <label htmlFor="claim-date-to" style={{ display: "flex", flexDirection: "column", gap: "2px", cursor: "pointer" }}>
               <span style={{ color: "#9A9A9A", fontSize: "11px" }}>Sampai</span>
               <input
                 id="claim-date-to"
@@ -204,9 +204,9 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
                 style={{
-                  width: "100%",
+                  width: "130px",
                   minHeight: "32px",
-                  padding: "6px 8px",
+                  padding: "6px 10px",
                   background: "#0B0B0B",
                   border: "1px solid #333",
                   borderRadius: "8px",
