@@ -16,14 +16,39 @@ import { getTodayKey } from "../lib/dashboard";
 
 const RATE_LIMIT_MS = 7000;
 const AUTO_RESET_MS = 10000;
+const BARISTA_PIN_KEY = "padelkecil:barista:unlocked";
+
+const baristaPin = process.env.NEXT_PUBLIC_BARISTA_PIN ?? "";
 
 export default function BaristaPage() {
+  const [unlocked, setUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState("");
   const [view, setView] = useState("scan"); // "scan" | "success" | "error"
   const [message, setMessage] = useState("");
   const [successPlayer, setSuccessPlayer] = useState(null); // { name, photoUrl }
   const scannerRef = useRef(null);
   const containerId = "barista-qr-reader";
   const lastClaimTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = sessionStorage.getItem(BARISTA_PIN_KEY);
+    if (saved === "1") setUnlocked(true);
+  }, []);
+
+  const handlePinSubmit = (e) => {
+    e.preventDefault();
+    setPinError("");
+    const ok = baristaPin === "" ? true : pinInput === baristaPin;
+    if (ok) {
+      sessionStorage.setItem(BARISTA_PIN_KEY, "1");
+      setUnlocked(true);
+      setPinInput("");
+    } else {
+      setPinError("PIN salah.");
+    }
+  };
 
   useEffect(() => {
     if (view !== "scan") return;
@@ -148,6 +173,64 @@ export default function BaristaPage() {
     setMessage("");
     setSuccessPlayer(null);
   };
+
+  if (!unlocked) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#0B0B0B",
+          color: "#fff",
+          padding: "max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))",
+          fontFamily: "Inter, system-ui, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <p style={{ fontSize: "18px", color: "#9FF5EA", marginBottom: "20px" }}>
+          Masukkan PIN barista
+        </p>
+        <form onSubmit={handlePinSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px", width: "min(280px, 90vw)" }}>
+          <input
+            type="password"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="PIN"
+            value={pinInput}
+            onChange={(e) => setPinInput(e.target.value)}
+            style={{
+              padding: "14px 16px",
+              background: "#121212",
+              border: "1px solid #333",
+              borderRadius: "12px",
+              color: "#fff",
+              fontSize: "18px",
+              textAlign: "center",
+              letterSpacing: "0.2em",
+            }}
+          />
+          {pinError && <p style={{ color: "#FF6B6B", fontSize: "14px", margin: 0 }}>{pinError}</p>}
+          <button
+            type="submit"
+            style={{
+              padding: "14px",
+              background: "#4FD1C5",
+              border: "none",
+              borderRadius: "12px",
+              color: "#0B0B0B",
+              fontSize: "16px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Masuk
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div

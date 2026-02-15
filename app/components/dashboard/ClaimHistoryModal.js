@@ -168,20 +168,20 @@ export default function ClaimHistoryModal({ open, onClose }) {
           <div style={{ fontSize: "14px", color: "#4FD1C5", marginBottom: "14px" }}>
             Klaim hari ini: <strong>{todayCount != null ? todayCount : "–"}</strong>
           </div>
-          <p style={{ fontSize: "12px", color: "#666", marginBottom: "10px" }}>
+          <p style={{ fontSize: "11px", color: "#666", marginBottom: "8px" }}>
             Ketuk untuk memilih tanggal (kalender akan muncul)
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <label
               htmlFor="claim-date-from"
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "6px",
+                gap: "4px",
                 cursor: "pointer",
               }}
             >
-              <span style={{ color: "#9A9A9A", fontSize: "13px" }}>Dari tanggal</span>
+              <span style={{ color: "#9A9A9A", fontSize: "12px" }}>Dari tanggal</span>
               <input
                 id="claim-date-from"
                 type="date"
@@ -189,13 +189,13 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 onChange={(e) => setDateFrom(e.target.value)}
                 style={{
                   width: "100%",
-                  minHeight: "48px",
-                  padding: "14px 16px",
+                  minHeight: "40px",
+                  padding: "10px 12px",
                   background: "#0B0B0B",
                   border: "1px solid #333",
-                  borderRadius: "12px",
+                  borderRadius: "10px",
                   color: "#fff",
-                  fontSize: "16px",
+                  fontSize: "14px",
                   cursor: "pointer",
                   boxSizing: "border-box",
                 }}
@@ -206,11 +206,11 @@ export default function ClaimHistoryModal({ open, onClose }) {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "6px",
+                gap: "4px",
                 cursor: "pointer",
               }}
             >
-              <span style={{ color: "#9A9A9A", fontSize: "13px" }}>Sampai tanggal</span>
+              <span style={{ color: "#9A9A9A", fontSize: "12px" }}>Sampai tanggal</span>
               <input
                 id="claim-date-to"
                 type="date"
@@ -218,13 +218,13 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 onChange={(e) => setDateTo(e.target.value)}
                 style={{
                   width: "100%",
-                  minHeight: "48px",
-                  padding: "14px 16px",
+                  minHeight: "40px",
+                  padding: "10px 12px",
                   background: "#0B0B0B",
                   border: "1px solid #333",
-                  borderRadius: "12px",
+                  borderRadius: "10px",
                   color: "#fff",
-                  fontSize: "16px",
+                  fontSize: "14px",
                   cursor: "pointer",
                   boxSizing: "border-box",
                 }}
