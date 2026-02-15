@@ -34,5 +34,18 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAny(['dayKey', 'finishedAt', 'courtName', 'score1', 'score2', 'winner', 'team1PlayerIds', 'team2PlayerIds']);
       allow update, delete: if false;
     }
+
+    // ---------- DRINK CLAIMS (minuman gratis barista) ----------
+    // Baca: host untuk riwayat claim. Buat: dari barista/Cloud Function (data rapi: playerId, playerName, dayKey, claimedAt).
+    // Update/hapus: tidak dari client.
+    match /drinkClaims/{claimId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['playerId', 'playerName', 'dayKey', 'claimedAt'])
+        && request.resource.data.playerId is string
+        && request.resource.data.playerName is string
+        && request.resource.data.dayKey is string
+        && request.resource.data.claimedAt is string;
+      allow update, delete: if false;
+    }
   }
 }

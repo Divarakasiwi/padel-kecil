@@ -17,6 +17,8 @@ import {
 import Header from "./components/dashboard/Header";
 import StatusIndicator from "./components/dashboard/StatusIndicator";
 import BadgeManagerModal from "./components/dashboard/BadgeManagerModal";
+import HistoryModal from "./components/dashboard/HistoryModal";
+import ClaimHistoryModal from "./components/dashboard/ClaimHistoryModal";
 import CourtCard from "./components/dashboard/CourtCard";
 import InfoCard from "./components/dashboard/InfoCard";
 import InfoRow from "./components/dashboard/InfoRow";
@@ -39,6 +41,8 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [allPlayers, setAllPlayers] = useState([]);
   const [showBadgeManager, setShowBadgeManager] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showClaimHistoryModal, setShowClaimHistoryModal] = useState(false);
 
   // status kecil di pojok (online/offline/error/sync)
   const [systemStatus, setSystemStatus] = useState({
@@ -281,13 +285,27 @@ const updateExtraCourtState = (id, updater) => {
      DATA RINGAN (HOST)
   ===================== */
 
-  const players = [
-    { name: "Willy", played: 0 },
-    { name: "Siska", played: 1 },
-    { name: "Agus", played: 2 },
-    { name: "Lestaluhuma", played: 2 },
-    { name: "Winarto Sudehi", played: 3 },
-  ].sort((a, b) => a.played - b.played);
+  // Player Priority: hanya yang sudah selesai minimal 1 match hari ini; urut yang paling sedikit main
+  const players = useMemo(() => {
+    const today = getTodayKey();
+    const queue = loadMatchQueue();
+    const todayMatches = queue.filter((item) => item.data?.dayKey === today);
+    const countById = {};
+    const scannedTodayIds = new Set();
+    todayMatches.forEach((item) => {
+      const d = item.data;
+      if (!d) return;
+      const ids = [...(d.team1PlayerIds || []), ...(d.team2PlayerIds || [])];
+      ids.forEach((id) => {
+        countById[id] = (countById[id] || 0) + 1;
+        scannedTodayIds.add(id);
+      });
+    });
+    return allPlayers
+      .filter((p) => scannedTodayIds.has(p.id))
+      .map((p) => ({ id: p.id, name: p.name || p.id, played: countById[p.id] || 0 }))
+      .sort((a, b) => a.played - b.played);
+  }, [allPlayers, pendingMatchesCount]);
 
   const pairings = [
     { pair: "Willy + Siska", times: 1 },
@@ -295,10 +313,33 @@ const updateExtraCourtState = (id, updater) => {
     { pair: "Winarto Sudehi + Agus", times: 3 },
   ];
 
-  const topRanks = [
-    { team: "Willy + Agus", wins: 2 },
-    { team: "Siska + Winarto Sudehi", wins: 1 },
-  ];
+  // Top 3 pemain (hari ini) berdasarkan jumlah kemenangan individu
+  const topWinnersToday = useMemo(() => {
+    const today = getTodayKey();
+    const queue = loadMatchQueue();
+    const todayMatches = queue.filter((item) => item.data?.dayKey === today);
+    const winsById = {};
+    todayMatches.forEach((item) => {
+      const d = item.data;
+      if (!d) return;
+      const winner = d.winner;
+      const t1 = d.team1PlayerIds || [];
+      const t2 = d.team2PlayerIds || [];
+      if (winner === "team1") {
+        t1.forEach((id) => { winsById[id] = (winsById[id] || 0) + 1; });
+      } else if (winner === "team2") {
+        t2.forEach((id) => { winsById[id] = (winsById[id] || 0) + 1; });
+      }
+    });
+    const nameById = (allPlayers || []).reduce((acc, p) => {
+      acc[p.id] = p.name || p.id;
+      return acc;
+    }, {});
+    return Object.entries(winsById)
+      .map(([id, wins]) => ({ id, name: nameById[id] || id, wins }))
+      .sort((a, b) => b.wins - a.wins)
+      .slice(0, 3);
+  }, [allPlayers, pendingMatchesCount]);
 
   if (!hostChecked) {
     return (
@@ -538,14 +579,20 @@ const updateExtraCourtState = (id, updater) => {
       >
         {/* PLAYER PRIORITY */}
         <InfoCard title="PLAYER PRIORITY (HOST)">
-          {players.map((p, index) => (
-            <InfoRow
-              key={p.name}
-              left={p.name}
-              right={`${p.played}x`}
-              badge={p.played === 0 ? "recommended" : null}
-            />
-          ))}
+          {players.length === 0 ? (
+            <div style={{ padding: "12px 0", color: "#9A9A9A", fontSize: "14px" }}>
+              Belum ada pemain terdaftar.
+            </div>
+          ) : (
+            players.map((p, index) => (
+              <InfoRow
+                key={p.id}
+                left={p.name}
+                right={`${p.played}x`}
+                badge={index === 0 ? "recommended" : null}
+              />
+            ))
+          )}
         </InfoCard>
 
         {/* PAIRING INSIGHT */}
@@ -561,16 +608,80 @@ const updateExtraCourtState = (id, updater) => {
         </InfoCard>
       </div>
 
-      {/* TOP RANK */}
-      <InfoCard title="TOP WINNING TEAMS (TODAY)">
-        {topRanks.map((t, i) => (
-          <InfoRow
-            key={t.team}
-            left={`${i + 1}. ${t.team}`}
-            right={`${t.wins} wins`}
-          />
-        ))}
+      {/* TOP 3 PEMENANG HARI INI (per pemain) */}
+      <InfoCard title="JUARA 1, 2, 3 (HARI INI)">
+        {topWinnersToday.length === 0 ? (
+          <div style={{ padding: "12px 0", color: "#9A9A9A", fontSize: "14px" }}>
+            Belum ada pertandingan selesai hari ini.
+          </div>
+        ) : (
+          topWinnersToday.map((p, i) => (
+            <InfoRow
+              key={p.id}
+              left={`${i + 1}. ${p.name}`}
+              right={`${p.wins} wins`}
+            />
+          ))
+        )}
       </InfoCard>
+
+      {/* RIWAYAT PERTANDINGAN */}
+      <div style={{ marginTop: "24px" }}>
+        <button
+          type="button"
+          onClick={() => setShowHistoryModal(true)}
+          style={{
+            width: "100%",
+            padding: "16px 20px",
+            background: "transparent",
+            border: "1px solid #333",
+            borderRadius: "14px",
+            color: "#9FF5EA",
+            fontSize: "15px",
+            fontWeight: 500,
+            cursor: "pointer",
+            letterSpacing: "0.04em",
+          }}
+        >
+          Riwayat pertandingan
+        </button>
+      </div>
+
+      {/* RIWAYAT CLAIM MINUMAN */}
+      <div style={{ marginTop: "12px", marginBottom: "32px" }}>
+        <button
+          type="button"
+          onClick={() => setShowClaimHistoryModal(true)}
+          style={{
+            width: "100%",
+            padding: "16px 20px",
+            background: "transparent",
+            border: "1px solid #333",
+            borderRadius: "14px",
+            color: "#9FF5EA",
+            fontSize: "15px",
+            fontWeight: 500,
+            cursor: "pointer",
+            letterSpacing: "0.04em",
+          }}
+        >
+          Riwayat claim minuman
+        </button>
+      </div>
+
+      {showHistoryModal && (
+        <HistoryModal
+          open={showHistoryModal}
+          onClose={() => setShowHistoryModal(false)}
+          allPlayers={allPlayers}
+        />
+      )}
+      {showClaimHistoryModal && (
+        <ClaimHistoryModal
+          open={showClaimHistoryModal}
+          onClose={() => setShowClaimHistoryModal(false)}
+        />
+      )}
     </div>
   );
 }
