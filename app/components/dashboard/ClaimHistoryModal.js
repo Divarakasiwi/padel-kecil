@@ -115,7 +115,8 @@ export default function ClaimHistoryModal({ open, onClose }) {
         alignItems: "center",
         justifyContent: "center",
         zIndex: 100,
-        padding: "max(24px, env(safe-area-inset-top))",
+        padding: "max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left))",
+        boxSizing: "border-box",
       }}
     >
       <div
@@ -124,27 +125,29 @@ export default function ClaimHistoryModal({ open, onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#121212",
-          borderRadius: "18px",
+          borderRadius: "16px",
           border: "1px solid #333",
           maxWidth: "480px",
           width: "100%",
-          maxHeight: "85vh",
+          maxHeight: "min(82vh, calc(100vh - 32px))",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
           boxShadow: "0 0 40px rgba(79,209,197,0.2)",
+          boxSizing: "border-box",
         }}
       >
         <div
           style={{
-            padding: "20px 20px 12px",
+            padding: "14px 16px 10px",
             borderBottom: "1px solid #222",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexShrink: 0,
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "18px", color: "#E8FFF9" }}>
+          <h2 style={{ margin: 0, fontSize: "16px", color: "#E8FFF9" }}>
             Riwayat claim minuman
           </h2>
           <button
@@ -154,34 +157,26 @@ export default function ClaimHistoryModal({ open, onClose }) {
               background: "transparent",
               border: "1px solid #444",
               color: "#9FF5EA",
-              padding: "8px 14px",
-              borderRadius: "10px",
+              padding: "6px 12px",
+              borderRadius: "8px",
               cursor: "pointer",
-              fontSize: "14px",
+              fontSize: "13px",
             }}
           >
             Tutup
           </button>
         </div>
 
-        <div style={{ padding: "12px 20px", borderBottom: "1px solid #222" }}>
-          <div style={{ fontSize: "13px", color: "#4FD1C5", marginBottom: "8px" }}>
+        <div style={{ padding: "10px 16px", borderBottom: "1px solid #222", flexShrink: 0 }}>
+          <div style={{ fontSize: "12px", color: "#4FD1C5", marginBottom: "6px" }}>
             Klaim hari ini: <strong>{todayCount != null ? todayCount : "–"}</strong>
           </div>
           <p style={{ fontSize: "10px", color: "#666", marginBottom: "6px" }}>
             Ketuk untuk memilih tanggal (kalender akan muncul)
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label
-              htmlFor="claim-date-from"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px",
-                cursor: "pointer",
-              }}
-            >
-              <span style={{ color: "#9A9A9A", fontSize: "11px" }}>Dari tanggal</span>
+          <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
+            <label htmlFor="claim-date-from" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px", cursor: "pointer", minWidth: 0 }}>
+              <span style={{ color: "#9A9A9A", fontSize: "11px" }}>Dari</span>
               <input
                 id="claim-date-from"
                 type="date"
@@ -189,8 +184,8 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 onChange={(e) => setDateFrom(e.target.value)}
                 style={{
                   width: "100%",
-                  minHeight: "34px",
-                  padding: "6px 10px",
+                  minHeight: "32px",
+                  padding: "6px 8px",
                   background: "#0B0B0B",
                   border: "1px solid #333",
                   borderRadius: "8px",
@@ -201,16 +196,8 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 }}
               />
             </label>
-            <label
-              htmlFor="claim-date-to"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px",
-                cursor: "pointer",
-              }}
-            >
-              <span style={{ color: "#9A9A9A", fontSize: "11px" }}>Sampai tanggal</span>
+            <label htmlFor="claim-date-to" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px", cursor: "pointer", minWidth: 0 }}>
+              <span style={{ color: "#9A9A9A", fontSize: "11px" }}>Sampai</span>
               <input
                 id="claim-date-to"
                 type="date"
@@ -218,8 +205,8 @@ export default function ClaimHistoryModal({ open, onClose }) {
                 onChange={(e) => setDateTo(e.target.value)}
                 style={{
                   width: "100%",
-                  minHeight: "34px",
-                  padding: "6px 10px",
+                  minHeight: "32px",
+                  padding: "6px 8px",
                   background: "#0B0B0B",
                   border: "1px solid #333",
                   borderRadius: "8px",
@@ -233,7 +220,7 @@ export default function ClaimHistoryModal({ open, onClose }) {
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", overflowY: "auto", flex: 1 }}>
+        <div style={{ padding: "12px 16px", overflowY: "auto", flex: 1, minHeight: 0 }}>
           {error && (
             <div style={{ color: "#FF6B6B", marginBottom: "12px" }}>{error}</div>
           )}
@@ -243,12 +230,12 @@ export default function ClaimHistoryModal({ open, onClose }) {
             </div>
           )}
           {!loading && dateFrom > dateTo && (
-            <div style={{ color: "#9A9A9A", padding: "12px 0" }}>
+            <div style={{ color: "#9A9A9A", padding: "8px 0", fontSize: "13px" }}>
               Pilih rentang tanggal yang valid.
             </div>
           )}
           {!loading && !error && dateFrom <= dateTo && claims.length === 0 && (
-            <div style={{ color: "#9A9A9A", padding: "12px 0" }}>
+            <div style={{ color: "#9A9A9A", padding: "8px 0", fontSize: "13px" }}>
               Tidak ada data claim untuk rentang ini.
             </div>
           )}
