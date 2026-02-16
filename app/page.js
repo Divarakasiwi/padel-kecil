@@ -1,6 +1,7 @@
 "use client";
 
 import { collection, getDocs, addDoc } from "firebase/firestore";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../firebase";
@@ -307,11 +308,38 @@ const updateExtraCourtState = (id, updater) => {
       .sort((a, b) => a.played - b.played);
   }, [allPlayers, pendingMatchesCount]);
 
-  const pairings = [
-    { pair: "Willy + Siska", times: 1 },
-    { pair: "Agus + Lestaluhuma", times: 2 },
-    { pair: "Winarto Sudehi + Agus", times: 3 },
-  ];
+  // Pairing Insight: pasangan yang main bersama hari ini (dari semua court), digabung
+  const pairings = useMemo(() => {
+    const today = getTodayKey();
+    const queue = loadMatchQueue();
+    const todayMatches = queue.filter((item) => item.data?.dayKey === today);
+    const countByPairKey = {};
+    todayMatches.forEach((item) => {
+      const d = item.data;
+      if (!d) return;
+      const t1 = d.team1PlayerIds || [];
+      const t2 = d.team2PlayerIds || [];
+      if (t1.length === 2) {
+        const key = [...t1].sort().join(",");
+        countByPairKey[key] = (countByPairKey[key] || 0) + 1;
+      }
+      if (t2.length === 2) {
+        const key = [...t2].sort().join(",");
+        countByPairKey[key] = (countByPairKey[key] || 0) + 1;
+      }
+    });
+    const nameById = (allPlayers || []).reduce((acc, p) => {
+      acc[p.id] = p.name || p.id;
+      return acc;
+    }, {});
+    return Object.entries(countByPairKey)
+      .map(([key, times]) => {
+        const ids = key.split(",");
+        const names = ids.map((id) => nameById[id] || id);
+        return { pair: names.join(" + "), times };
+      })
+      .sort((a, b) => b.times - a.times);
+  }, [allPlayers, pendingMatchesCount]);
 
   // Top 3 pemain (hari ini) berdasarkan jumlah kemenangan individu
   const topWinnersToday = useMemo(() => {
@@ -595,16 +623,22 @@ const updateExtraCourtState = (id, updater) => {
           )}
         </InfoCard>
 
-        {/* PAIRING INSIGHT */}
+        {/* PAIRING INSIGHT – dari semua court hari ini */}
         <InfoCard title="PAIRING INSIGHT (HOST)">
-          {pairings.map((p) => (
-            <InfoRow
-              key={p.pair}
-              left={p.pair}
-              right={`${p.times}x`}
-              badge={p.times >= 3 ? "often" : null}
-            />
-          ))}
+          {pairings.length === 0 ? (
+            <div style={{ padding: "12px 0", color: "#9A9A9A", fontSize: "14px" }}>
+              Belum ada pasangan hari ini.
+            </div>
+          ) : (
+            pairings.map((p) => (
+              <InfoRow
+                key={p.pair}
+                left={p.pair}
+                right={`${p.times}x`}
+                badge={p.times >= 3 ? "often" : null}
+              />
+            ))
+          )}
         </InfoCard>
       </div>
 
@@ -682,6 +716,34 @@ const updateExtraCourtState = (id, updater) => {
           onClose={() => setShowClaimHistoryModal(false)}
         />
       )}
+
+      {/* TOMBOL CARA PAKAI – pojok kiri bawah, ? dalam lingkaran + glow → ke halaman /cara-pakai */}
+      <Link
+        href="/cara-pakai"
+        aria-label="Cara pakai"
+        style={{
+          position: "fixed",
+          left: "max(16px, env(safe-area-inset-left))",
+          bottom: "max(16px, env(safe-area-inset-bottom))",
+          zIndex: 99,
+          width: "48px",
+          height: "48px",
+          borderRadius: "50%",
+          border: "1px solid rgba(79,209,197,0.5)",
+          background: "#121212",
+          color: "#9FF5EA",
+          fontSize: "22px",
+          fontWeight: 700,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 0 20px rgba(79,209,197,0.4), 0 0 40px rgba(79,209,197,0.2)",
+          textDecoration: "none",
+        }}
+      >
+        ?
+      </Link>
     </div>
   );
 }
