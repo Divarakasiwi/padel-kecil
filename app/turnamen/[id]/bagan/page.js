@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { db } from "../../../../../firebase";
+import { db } from "../../../../firebase";
 import { HOST_AUTH_KEY } from "../../../lib/dashboard";
 
 const MONTHS = "Jan Feb Mar Apr Mei Jun Jul Agt Sep Okt Nov Des".split(" ");
