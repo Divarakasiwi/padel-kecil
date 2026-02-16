@@ -92,6 +92,7 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
   const [topTeams, setTopTeams] = useState([]);
   const [totalMatches, setTotalMatches] = useState(0);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -134,7 +135,7 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
     );
 
     return () => unsubscribe();
-  }, [open, period, allPlayers]);
+  }, [open, period, allPlayers, retryCount]);
 
   if (!open) return null;
 
@@ -235,13 +236,32 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
 
         <div style={{ padding: "16px 20px", overflowY: "auto", flex: 1 }}>
           {loading && (
-            <div style={{ color: "#9FF5EA", textAlign: "center", padding: "24px" }}>
-              Memuat...
+            <div style={{ padding: "16px 0" }}>
+              <div style={{ height: 14, background: "#222", borderRadius: 4, marginBottom: 12, maxWidth: "80%" }} />
+              <div style={{ height: 14, background: "#222", borderRadius: 4, marginBottom: 12, maxWidth: "60%" }} />
+              <div style={{ height: 14, background: "#222", borderRadius: 4, marginBottom: 12, maxWidth: "70%" }} />
+              <p style={{ color: "#9A9A9A", fontSize: "13px", marginTop: 16 }}>Memuat...</p>
             </div>
           )}
           {error && (
-            <div style={{ color: "#FF6B6B", textAlign: "center", padding: "24px" }}>
-              {error}
+            <div style={{ textAlign: "center", padding: "24px" }}>
+              <p style={{ color: "#FF6B6B", marginBottom: "16px" }}>{error}</p>
+              <button
+                type="button"
+                onClick={() => { setError(null); setRetryCount((c) => c + 1); }}
+                style={{
+                  padding: "10px 20px",
+                  background: "#4FD1C5",
+                  border: "none",
+                  borderRadius: "10px",
+                  color: "#0B0B0B",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Coba lagi
+              </button>
             </div>
           )}
           {!loading && !error && topTeams.length === 0 && (

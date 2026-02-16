@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [showBadgeManager, setShowBadgeManager] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showClaimHistoryModal, setShowClaimHistoryModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   // status kecil di pojok (online/offline/error/sync)
   const [systemStatus, setSystemStatus] = useState({
@@ -105,12 +106,17 @@ export default function Dashboard() {
 
     setIsSyncingMatches(false);
 
+    if (changed && navigator.onLine) {
+      setToastMessage("Tersinkronkan");
+      setTimeout(() => setToastMessage(""), 3000);
+    }
+
     setSystemStatus((prev) => ({
       ...prev,
       level: navigator.onLine ? "ok" : "warning",
       message: navigator.onLine
         ? "Online – data match tersinkron dengan server."
-        : "Offline – data tersimpan aman di perangkat dan akan disinkronkan saat koneksi kembali.",
+        : "Match tetap tersimpan di perangkat; akan sync saat online.",
     }));
   };
 
@@ -139,8 +145,7 @@ useEffect(() => {
     setSystemStatus((prev) => ({
       ...prev,
       level: "warning",
-      message:
-        "Offline – data tersimpan aman di perangkat dan akan disinkronkan saat koneksi kembali.",
+      message: "Match tetap tersimpan di perangkat; akan sync saat online.",
     }));
   };
 
@@ -222,6 +227,9 @@ const handleMatchFinished = (result) => {
 
   // update jumlah pending lokal
   setPendingMatchesCount(queue.filter((m) => !m.synced).length + 1);
+
+  setToastMessage("Match tersimpan, menyinkronkan…");
+  setTimeout(() => setToastMessage(""), 3000);
 
   setSystemStatus((prev) => ({
     ...prev,
@@ -425,6 +433,30 @@ const updateExtraCourtState = (id, updater) => {
         onToggleDetail={() => setShowStatusDetail((v) => !v)}
         pendingCount={pendingMatchesCount}
       />
+
+      {/* TOAST: feedback sync match */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "fixed",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: "max(80px, calc(env(safe-area-inset-bottom) + 56px))",
+            zIndex: 101,
+            padding: "12px 20px",
+            background: "#121212",
+            border: "1px solid #4FD1C5",
+            borderRadius: "12px",
+            color: "#9FF5EA",
+            fontSize: "14px",
+            boxShadow: "0 0 20px rgba(79,209,197,0.3)",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
 
       {/* TAGLINE – di atas kiri Court 1 */}
       <div
@@ -666,6 +698,7 @@ const updateExtraCourtState = (id, updater) => {
           onClick={() => setShowHistoryModal(true)}
           style={{
             width: "100%",
+            minHeight: "48px",
             padding: "16px 20px",
             background: "transparent",
             border: "1px solid #333",
@@ -688,6 +721,7 @@ const updateExtraCourtState = (id, updater) => {
           onClick={() => setShowClaimHistoryModal(true)}
           style={{
             width: "100%",
+            minHeight: "48px",
             padding: "16px 20px",
             background: "transparent",
             border: "1px solid #333",

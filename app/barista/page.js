@@ -133,6 +133,9 @@ export default function BaristaPage() {
                 name: playerData.name || playerId,
                 photoUrl: playerData.photoUrl || "",
               });
+              if (typeof navigator !== "undefined" && navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]);
+              }
               setView("success");
             } catch (err) {
               stopScanner();

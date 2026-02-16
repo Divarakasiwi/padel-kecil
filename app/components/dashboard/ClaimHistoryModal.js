@@ -36,6 +36,7 @@ export default function ClaimHistoryModal({ open, onClose }) {
   const [claims, setClaims] = useState([]);
   const [error, setError] = useState(null);
   const [todayCount, setTodayCount] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Fetch today's count when modal opens
   useEffect(() => {
@@ -90,7 +91,7 @@ export default function ClaimHistoryModal({ open, onClose }) {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [open, dateFrom, dateTo]);
+  }, [open, dateFrom, dateTo, retryCount]);
 
   if (!open) return null;
 
@@ -222,30 +223,57 @@ export default function ClaimHistoryModal({ open, onClose }) {
 
         <div style={{ padding: "12px 16px", overflowY: "auto", flex: 1, minHeight: 0 }}>
           {error && (
-            <div style={{ color: "#FF6B6B", marginBottom: "12px" }}>{error}</div>
+            <div style={{ marginBottom: "12px" }}>
+              <p style={{ color: "#FF6B6B", marginBottom: "12px" }}>{error}</p>
+              <button
+                type="button"
+                onClick={() => { setError(null); setRetryCount((c) => c + 1); }}
+                style={{
+                  padding: "10px 20px",
+                  background: "#4FD1C5",
+                  border: "none",
+                  borderRadius: "10px",
+                  color: "#0B0B0B",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Coba lagi
+              </button>
+            </div>
           )}
           {loading && (
-            <div style={{ color: "#9FF5EA", textAlign: "center", padding: "24px" }}>
-              Memuat...
+            <div style={{ padding: "16px 0" }}>
+              <div style={{ height: 14, background: "#222", borderRadius: 4, marginBottom: 12, maxWidth: "80%" }} />
+              <div style={{ height: 14, background: "#222", borderRadius: 4, marginBottom: 12, maxWidth: "60%" }} />
+              <div style={{ height: 14, background: "#222", borderRadius: 4, marginBottom: 12, maxWidth: "70%" }} />
+              <p style={{ color: "#9A9A9A", fontSize: "13px", marginTop: 16 }}>Memuat...</p>
             </div>
           )}
           {!loading && dateFrom > dateTo && (
-            <div style={{ color: "#9A9A9A", padding: "8px 0", fontSize: "13px" }}>
+            <div style={{ color: "#9A9A9A", padding: "12px 0", fontSize: "14px" }}>
               Pilih rentang tanggal yang valid.
             </div>
           )}
           {!loading && !error && dateFrom <= dateTo && claims.length === 0 && (
-            <div style={{ color: "#9A9A9A", padding: "8px 0", fontSize: "13px" }}>
+            <div style={{ color: "#9A9A9A", padding: "12px 0", fontSize: "14px" }}>
               Tidak ada data claim untuk rentang ini.
             </div>
           )}
           {!loading && !error && sortedDays.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div style={{ fontSize: "12px", color: "#9A9A9A" }}>
                 Total dalam rentang: <strong style={{ color: "#fff" }}>{totalInRange}</strong> klaim
               </div>
-              {sortedDays.map((dayKey) => (
-                <div key={dayKey}>
+              {sortedDays.map((dayKey, dayIndex) => (
+                <div
+                  key={dayKey}
+                  style={{
+                    paddingTop: dayIndex > 0 ? "16px" : 0,
+                    borderTop: dayIndex > 0 ? "1px solid #222" : "none",
+                  }}
+                >
                   <div
                     style={{
                       fontSize: "11px",

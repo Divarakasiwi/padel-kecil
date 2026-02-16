@@ -6,6 +6,7 @@ import { JetBrains_Mono } from "next/font/google";
 
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "600", "700"] });
 const HOST_AUTH_KEY = "padelkecil:host:auth";
+const hostPin = process.env.NEXT_PUBLIC_HOST_PIN ?? "";
 
 const FULL_TEXT = "Selamat datang para host";
 
@@ -16,6 +17,7 @@ export default function HostLoginPage() {
   const [typingDone, setTypingDone] = useState(false);
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   // Typewriter: tampilkan teks huruf per huruf
   useEffect(() => {
@@ -41,6 +43,11 @@ export default function HostLoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoginError("");
+    if (hostPin !== "" && password !== hostPin) {
+      setLoginError("PIN salah. Hanya host yang boleh masuk.");
+      return;
+    }
     if (typeof window !== "undefined") {
       sessionStorage.setItem(HOST_AUTH_KEY, "1");
     }
@@ -187,13 +194,13 @@ export default function HostLoginPage() {
                 textTransform: "uppercase",
               }}
             >
-              Password
+              {hostPin ? "PIN host" : "Password"}
             </label>
             <input
               type="password"
               value={password}
+              placeholder={hostPin ? "Masukkan PIN host" : "Masukkan password"}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan password"
               style={{
                 width: "100%",
                 padding: "14px 16px",
@@ -207,6 +214,9 @@ export default function HostLoginPage() {
               }}
             />
           </div>
+          {loginError && (
+            <p style={{ color: "#F56565", fontSize: "13px", marginBottom: "16px" }}>{loginError}</p>
+          )}
           <button
             type="submit"
             style={{

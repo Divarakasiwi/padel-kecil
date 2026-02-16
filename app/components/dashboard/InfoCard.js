@@ -12,10 +12,11 @@ export default function InfoCard({ title, children }) {
     >
       <div
         style={{
-          fontSize: "13px",
-          color: "#888",
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "#B0B0B0",
           marginBottom: "12px",
-          letterSpacing: "1px",
+          letterSpacing: "0.08em",
         }}
       >
         {title}

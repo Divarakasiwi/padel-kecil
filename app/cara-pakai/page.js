@@ -4,7 +4,9 @@ import Link from "next/link";
 
 export default function CaraPakaiPage() {
   return (
-    <div
+    <main
+      role="main"
+      aria-label="Cara pakai aplikasi Padel Kecil"
       style={{
         minHeight: "100vh",
         background: "#0B0B0B",
@@ -15,25 +17,30 @@ export default function CaraPakaiPage() {
     >
       <div style={{ maxWidth: "560px", margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <h1 style={{ margin: 0, fontSize: "22px", color: "#E8FFF9" }}>Cara pakai</h1>
+          <h1 id="cara-pakai-title" style={{ margin: 0, fontSize: "22px", color: "#E8FFF9" }}>Cara pakai</h1>
           <Link
             href="/"
+            aria-label="Kembali ke dashboard"
             style={{
               background: "transparent",
               border: "1px solid #444",
               color: "#9FF5EA",
+              minHeight: "48px",
               padding: "10px 16px",
               borderRadius: "10px",
               fontSize: "14px",
               textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
             }}
           >
             ← Kembali
           </Link>
         </div>
 
-        <section style={{ marginBottom: "28px" }}>
-          <h2 style={{ margin: "0 0 12px", fontSize: "15px", color: "#4FD1C5", letterSpacing: "0.05em" }}>HOST (Dashboard)</h2>
+        <section aria-labelledby="host-section-title" style={{ marginBottom: "28px" }}>
+          <h2 id="host-section-title" style={{ margin: "0 0 8px", fontSize: "15px", color: "#4FD1C5", letterSpacing: "0.05em" }}>HOST (Dashboard)</h2>
+          <p style={{ margin: "0 0 12px", fontSize: "12px", color: "#666" }}>Untuk host saja. Hanya host yang boleh mengakses dashboard.</p>
           <ul style={{ margin: 0, paddingLeft: "20px", color: "#ccc", fontSize: "14px", lineHeight: 1.8 }}>
             <li>Scan QR pemain untuk memasukkan ke court (Team 1 / Team 2).</li>
             <li>Atur skor, lalu <strong>Finish match</strong> jika sudah selesai.</li>
@@ -45,8 +52,9 @@ export default function CaraPakaiPage() {
           </ul>
         </section>
 
-        <section>
-          <h2 style={{ margin: "0 0 12px", fontSize: "15px", color: "#4FD1C5", letterSpacing: "0.05em" }}>BARISTA (Minuman gratis)</h2>
+        <section aria-labelledby="barista-section-title">
+          <h2 id="barista-section-title" style={{ margin: "0 0 8px", fontSize: "15px", color: "#4FD1C5", letterSpacing: "0.05em" }}>BARISTA (Minuman gratis)</h2>
+          <p style={{ margin: "0 0 12px", fontSize: "12px", color: "#666" }}>Untuk barista saja. Hanya barista yang boleh mengakses halaman Barista.</p>
           <ul style={{ margin: 0, paddingLeft: "20px", color: "#ccc", fontSize: "14px", lineHeight: 1.8 }}>
             <li>Buka halaman Barista (PIN jika sudah diatur).</li>
             <li>Scan QR kartu pemain. Jika pemain sudah main hari ini dan belum klaim, tampil nama + foto + &quot;Claim sukses&quot;.</li>
@@ -55,6 +63,6 @@ export default function CaraPakaiPage() {
           </ul>
         </section>
       </div>
-    </div>
+    </main>
   );
 }
