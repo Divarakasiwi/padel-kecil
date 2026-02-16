@@ -30,6 +30,7 @@ export default function BaristaPage() {
   const scannerRef = useRef(null);
   const containerId = "barista-qr-reader";
   const lastClaimTimeRef = useRef(0);
+  const processingRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -64,83 +65,116 @@ export default function BaristaPage() {
           { fps: 8, qrbox: { width: 260, height: 260 } },
           async (decodedText) => {
             if (cancelled) return;
-            const raw = decodedText.trim();
-            const playerId = raw.startsWith("http")
-              ? new URL(raw).pathname.split("/").pop() || raw
-              : decodeURIComponent(raw);
+            if (processingRef.current) return;
+            processingRef.current = true;
 
-            if (Date.now() - lastClaimTimeRef.current < RATE_LIMIT_MS) {
+            const showError = (msg) => {
               stopScanner();
-              setMessage("Tunggu 7 detik sebelum scan lagi.");
+              setMessage(msg);
               setView("error");
-              return;
-            }
+              processingRef.current = false;
+            };
+            const showSuccess = (player) => {
+              setSuccessPlayer(player);
+              setView("success");
+              try {
+                stopScanner();
+              } catch (_) {}
+              try {
+                if (typeof navigator !== "undefined" && navigator.vibrate) {
+                  navigator.vibrate([100, 50, 100]);
+                }
+              } catch (_) {}
+              processingRef.current = false;
+            };
 
             try {
-              const playerSnap = await getDoc(doc(db, "players", playerId));
-              if (!playerSnap.exists()) {
-                stopScanner();
-                setMessage("Pemain tidak ditemukan.");
-                setView("error");
+              const raw = (decodedText && decodedText.trim()) || "";
+              if (!raw) {
+                showError("QR tidak terbaca. Coba lagi.");
                 return;
               }
-              const playerData = playerSnap.data();
-              const today = getTodayKey();
-
-              const matchesSnap = await getDocs(
-                query(
-                  collection(db, "matches"),
-                  where("dayKey", "==", today)
-                )
-              );
-              let playedToday = false;
-              matchesSnap.docs.forEach((d) => {
-                const data = d.data();
-                const t1 = data.team1PlayerIds || [];
-                const t2 = data.team2PlayerIds || [];
-                if (t1.includes(playerId) || t2.includes(playerId)) playedToday = true;
-              });
-              if (!playedToday) {
-                stopScanner();
-                setMessage("Belum bermain hari ini.");
-                setView("error");
+              let playerId;
+              try {
+                playerId = raw.startsWith("http")
+                  ? (() => {
+                      try {
+                        const p = new URL(raw).pathname.split("/").filter(Boolean);
+                        return p[p.length - 1] || decodeURIComponent(raw);
+                      } catch {
+                        return decodeURIComponent(raw);
+                      }
+                    })()
+                  : decodeURIComponent(raw);
+              } catch {
+                showError("Format QR tidak valid.");
+                return;
+              }
+              if (!playerId) {
+                showError("Format QR tidak valid.");
                 return;
               }
 
-              const claimsSnap = await getDocs(
-                query(
-                  collection(db, "drinkClaims"),
-                  where("dayKey", "==", today),
-                  where("playerId", "==", playerId)
-                )
-              );
-              if (!claimsSnap.empty) {
-                stopScanner();
-                setMessage("Sudah pernah dapat minuman hari ini.");
-                setView("error");
+              if (Date.now() - lastClaimTimeRef.current < RATE_LIMIT_MS) {
+                showError("Tunggu 7 detik sebelum scan lagi.");
                 return;
               }
 
-              await addDoc(collection(db, "drinkClaims"), {
-                playerId,
-                playerName: playerData.name || playerId,
-                dayKey: today,
-                claimedAt: new Date().toISOString(),
-              });
-              lastClaimTimeRef.current = Date.now();
-              stopScanner();
-              setSuccessPlayer({
-                name: playerData.name || playerId,
-                photoUrl: playerData.photoUrl || "",
-              });
-              if (typeof navigator !== "undefined" && navigator.vibrate) {
-                navigator.vibrate([100, 50, 100]);
+              try {
+                const playerSnap = await getDoc(doc(db, "players", playerId));
+                if (!playerSnap.exists()) {
+                  showError("Pemain tidak ditemukan.");
+                  return;
+                }
+                const playerData = playerSnap.data();
+                const today = getTodayKey();
+
+                const matchesSnap = await getDocs(
+                  query(
+                    collection(db, "matches"),
+                    where("dayKey", "==", today)
+                  )
+                );
+                let playedToday = false;
+                matchesSnap.docs.forEach((d) => {
+                  const data = d.data();
+                  const t1 = data.team1PlayerIds || [];
+                  const t2 = data.team2PlayerIds || [];
+                  if (t1.includes(playerId) || t2.includes(playerId)) playedToday = true;
+                });
+                if (!playedToday) {
+                  showError("Belum bermain hari ini.");
+                  return;
+                }
+
+                const claimsSnap = await getDocs(
+                  query(
+                    collection(db, "drinkClaims"),
+                    where("dayKey", "==", today),
+                    where("playerId", "==", playerId)
+                  )
+                );
+                if (!claimsSnap.empty) {
+                  showError("Sudah pernah dapat minuman hari ini.");
+                  return;
+                }
+
+                await addDoc(collection(db, "drinkClaims"), {
+                  playerId,
+                  playerName: playerData.name || playerId,
+                  dayKey: today,
+                  claimedAt: new Date().toISOString(),
+                });
+                lastClaimTimeRef.current = Date.now();
+                showSuccess({
+                  name: playerData.name || playerId,
+                  photoUrl: playerData.photoUrl || "",
+                });
+              } catch (err) {
+                showError("Koneksi gagal, coba lagi.");
               }
-              setView("success");
             } catch (err) {
-              stopScanner();
-              setMessage("Koneksi gagal, coba lagi.");
-              setView("error");
+              showError("Terjadi kesalahan. Coba lagi.");
             }
           }
         );

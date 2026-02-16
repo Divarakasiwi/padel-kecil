@@ -290,6 +290,18 @@ const updateExtraCourtState = (id, updater) => {
   );
 };
 
+  // Semua pemain yang sedang mengisi slot di court manapun (untuk blok scan di court lain)
+  const allOccupiedPlayerIds = useMemo(() => {
+    const ids = new Set();
+    (court1.team1 || []).forEach((p) => ids.add(p.id));
+    (court1.team2 || []).forEach((p) => ids.add(p.id));
+    extraCourts.forEach((c) => {
+      (c.state?.team1 || []).forEach((p) => ids.add(p.id));
+      (c.state?.team2 || []).forEach((p) => ids.add(p.id));
+    });
+    return ids;
+  }, [court1, extraCourts]);
+
   /* =====================
      DATA RINGAN (HOST)
   ===================== */
@@ -506,6 +518,7 @@ const updateExtraCourtState = (id, updater) => {
               reportStatus={setSystemStatus}
               onMatchFinished={handleMatchFinished}
               allPlayers={allPlayers}
+              allOccupiedPlayerIds={allOccupiedPlayerIds}
             />
           </div>
 
@@ -558,6 +571,7 @@ const updateExtraCourtState = (id, updater) => {
                 reportStatus={setSystemStatus}
                 onMatchFinished={handleMatchFinished}
                 allPlayers={allPlayers}
+                allOccupiedPlayerIds={allOccupiedPlayerIds}
               />
             </div>
           ))}

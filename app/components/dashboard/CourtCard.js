@@ -109,6 +109,7 @@ export default function CourtCard({
   reportStatus,
   onMatchFinished,
   allPlayers = [],
+  allOccupiedPlayerIds = null,
 }) {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [activePlayer, setActivePlayer] = useState(null);
@@ -120,17 +121,26 @@ export default function CourtCard({
   const scanTargetRef = useRef(null);
   const activePlayerIdsRef = useRef(new Set());
   const qrContainerIdRef = useRef(`qr-${title.replace(/\s/g, "-")}-${Date.now()}`).current;
+  const setCourtRef = useRef(setCourt);
+  const reportStatusRef = useRef(reportStatus);
+  const allOccupiedRef = useRef(
+    allOccupiedPlayerIds instanceof Set ? allOccupiedPlayerIds : new Set(allOccupiedPlayerIds || [])
+  );
+  setCourtRef.current = setCourt;
+  reportStatusRef.current = reportStatus;
+  allOccupiedRef.current =
+    allOccupiedPlayerIds instanceof Set ? allOccupiedPlayerIds : new Set(allOccupiedPlayerIds || []);
 
-  const addTestPlayer = () => {
-    if (court.team1.length >= 2) return;
-    const player = {
-      id: `test_${Date.now()}`,
-      name: "Willy (TEST)",
-      photoUrl: "",
-      isVIP: true,
-      slot: SLOT_ORDER[court.team1.length],
-    };
-    setCourt((prev) => ({ ...prev, team1: [...prev.team1, player] }));
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+
+  const openNoteEditor = () => {
+    setNoteDraft(court.note ?? "");
+    setShowNoteEditor(true);
+  };
+  const saveNote = () => {
+    setCourt((prev) => ({ ...prev, note: (noteDraft || "").trim() }));
+    setShowNoteEditor(false);
   };
 
   const openScannerForSlot = (teamKey, slotIndex) => {
@@ -171,7 +181,7 @@ export default function CourtCard({
             const playerId = decodedText.trim();
 
             if (activePlayerIdsRef.current.has(playerId)) {
-              alert("Player ini sedang bermain di tempat lain");
+              alert("Pemain ini sudah ada di court ini.");
               if (qrRef.current) {
                 try { await qrRef.current.stop(); } catch (e) {}
                 try { await qrRef.current.clear(); } catch (e) {}
@@ -179,7 +189,19 @@ export default function CourtCard({
               }
               setShowScanner(false);
               scanTargetRef.current = null;
-              reportStatus?.({ level: "warning", message: "Player sudah aktif di court ini. Gunakan menu Player Action jika ingin memindahkan atau mengeluarkan pemain." });
+              reportStatusRef.current?.({ level: "warning", message: "Pemain sudah aktif di court ini." });
+              return;
+            }
+            if (allOccupiedRef.current.has(playerId)) {
+              alert("Pemain ini sudah bermain di court lain. Satu pemain hanya boleh di satu court.");
+              if (qrRef.current) {
+                try { await qrRef.current.stop(); } catch (e) {}
+                try { await qrRef.current.clear(); } catch (e) {}
+                qrRef.current = null;
+              }
+              setShowScanner(false);
+              scanTargetRef.current = null;
+              reportStatusRef.current?.({ level: "warning", message: "Pemain sudah di court lain." });
               return;
             }
 
@@ -195,11 +217,11 @@ export default function CourtCard({
               }
               setShowScanner(false);
               scanTargetRef.current = null;
-              reportStatus?.({ level: "warning", message: "QR tidak cocok dengan data player di server. Pastikan QR sesuai dengan data registrasi." });
+              reportStatusRef.current?.({ level: "warning", message: "QR tidak cocok dengan data player di server. Pastikan QR sesuai dengan data registrasi." });
               return;
             }
 
-            setCourt((prev) => {
+            setCourtRef.current((prev) => {
               if (prev[target.teamKey].length >= 2) {
                 alert("Tim ini sudah penuh");
                 return prev;
@@ -214,7 +236,7 @@ export default function CourtCard({
                     isVIP: snap.data().isVIP || false,
                     photoUrl: snap.data().photoUrl || "",
                     badge: snap.data().badge || null,
-                    slot: SLOT_ORDER[target.slotIndex],
+                    slot: SLOT_ORDER[(target.teamKey === "team1" ? 0 : 2) + target.slotIndex],
                   },
                 ],
               };
@@ -228,12 +250,12 @@ export default function CourtCard({
             }
             setShowScanner(false);
             scanTargetRef.current = null;
-            reportStatus?.({ level: "ok", message: "Scanner berjalan normal dan pemain berhasil ditambahkan." });
+            reportStatusRef.current?.({ level: "ok", message: "Scanner berjalan normal dan pemain berhasil ditambahkan." });
           }
         );
       } catch (e) {
         console.error(e);
-        reportStatus?.({ level: "error", message: "Scanner mengalami error. Jika masalah berlanjut, silakan refresh – data match aman karena tersimpan di perangkat." });
+        reportStatusRef.current?.({ level: "error", message: "Scanner mengalami error. Jika masalah berlanjut, silakan refresh – data match aman karena tersimpan di perangkat." });
       }
     };
 
@@ -246,7 +268,7 @@ export default function CourtCard({
         qrRef.current = null;
       }
     };
-  }, [showScanner, reportStatus, setCourt]);
+  }, [showScanner]);
 
   const isFinished = court.finished;
   const totalScore = court.score1 + court.score2;
@@ -295,6 +317,7 @@ export default function CourtCard({
         winner: court.score1 > court.score2 ? "team1" : court.score2 > court.score1 ? "team2" : "draw",
         team1PlayerIds: court.team1.map((p) => p.id),
         team2PlayerIds: court.team2.map((p) => p.id),
+        note: (court.note ?? "").trim() || null,
       };
       reportStatus?.({ level: "syncing", message: "Hasil match tersimpan di perangkat dan sedang dikirim ke server (jika koneksi tersedia)." });
       onMatchFinished?.(result);
@@ -331,21 +354,79 @@ export default function CourtCard({
         </span>
       </div>
 
-      <button
-        onClick={addTestPlayer}
-        style={{
-          width: "100%",
-          marginBottom: 14,
-          padding: "10px",
-          borderRadius: 12,
-          background: "#0B1F1E",
-          color: "#4FD1C5",
-          border: "1px dashed #4FD1C5",
-          cursor: "pointer",
-        }}
-      >
-        + TEST PLAYER
-      </button>
+      {!showNoteEditor ? (
+        <div style={{ marginBottom: 14 }}>
+          <button
+            onClick={openNoteEditor}
+            type="button"
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: 12,
+              background: "#0B1F1E",
+              color: "#4FD1C5",
+              border: "1px dashed #4FD1C5",
+              cursor: "pointer",
+            }}
+          >
+            + Keterangan
+          </button>
+          {(court.note ?? "").trim() ? (
+            <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#888", lineHeight: 1.4 }}>
+              {court.note}
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <div style={{ marginBottom: 14, display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <input
+            type="text"
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            placeholder="Misal: match besar taruhan 100ribu"
+            autoFocus
+            style={{
+              flex: 1,
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #333",
+              background: "#0B0B0B",
+              color: "#fff",
+              fontSize: "14px",
+            }}
+          />
+          <button
+            type="button"
+            onClick={saveNote}
+            title="Simpan keterangan"
+            style={{
+              padding: "10px 14px",
+              borderRadius: 12,
+              border: "none",
+              background: "#4FD1C5",
+              color: "#0B0B0B",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            ✓
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowNoteEditor(false); setNoteDraft(court.note ?? ""); }}
+            style={{
+              padding: "10px",
+              borderRadius: 12,
+              border: "1px solid #444",
+              background: "transparent",
+              color: "#888",
+              cursor: "pointer",
+            }}
+          >
+            Batal
+          </button>
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px", minWidth: 0 }}>
         <TeamColumn
@@ -403,8 +484,8 @@ export default function CourtCard({
                 if (!movingPlayer) return prev;
                 return {
                   ...prev,
-                  [from]: prev[from].filter((p) => p.id !== movingPlayer.id).map((p, i) => ({ ...p, slot: SLOT_ORDER[i] })),
-                  [to]: [...prev[to], movingPlayer].map((p, i) => ({ ...p, slot: SLOT_ORDER[i] })),
+                  [from]: prev[from].filter((p) => p.id !== movingPlayer.id).map((p, i) => ({ ...p, slot: SLOT_ORDER[(from === "team1" ? 0 : 2) + i] })),
+                  [to]: [...prev[to], movingPlayer].map((p, i) => ({ ...p, slot: SLOT_ORDER[(to === "team1" ? 0 : 2) + i] })),
                 };
               });
               setActivePlayer(null);
@@ -418,7 +499,7 @@ export default function CourtCard({
               const from = activePlayer.fromTeam;
               setCourt((prev) => ({
                 ...prev,
-                [from]: prev[from].filter((p) => p.id !== activePlayer.player.id).map((p, i) => ({ ...p, slot: SLOT_ORDER[i] })),
+                [from]: prev[from].filter((p) => p.id !== activePlayer.player.id).map((p, i) => ({ ...p, slot: SLOT_ORDER[(from === "team1" ? 0 : 2) + i] })),
               }));
               activePlayerIdsRef.current.delete(activePlayer.player.id);
               setActivePlayer(null);
@@ -497,7 +578,7 @@ export default function CourtCard({
                   if (!target) return;
                   setCourt((prev) => ({
                     ...prev,
-                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", isVIP: p.isVIP || false, badge: p.badge || null, slot: SLOT_ORDER[target.slotIndex] }],
+                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", isVIP: p.isVIP || false, badge: p.badge || null, slot: SLOT_ORDER[(target.teamKey === "team1" ? 0 : 2) + target.slotIndex] }],
                   }));
                   setShowPlayerPicker(false);
                   slotTargetRef.current = null;

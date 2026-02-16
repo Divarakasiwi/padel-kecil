@@ -21,6 +21,7 @@ export const initialCourtState = {
   score1: 0,
   score2: 0,
   finished: false,
+  note: "",
 };
 
 export function getTodayKey() {
