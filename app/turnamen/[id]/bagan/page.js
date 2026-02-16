@@ -26,11 +26,35 @@ function shuffle(arr) {
   return a;
 }
 
+// Bagan kosong berdasarkan jumlahTim saja (tanpa perlu tim terdaftar)
+function buildBracketSkeleton(jumlahTim) {
+  const n = Math.min(16, Math.max(4, [4, 8, 16].find((x) => x >= (jumlahTim || 8)) || 8));
+  const matches = [];
+  let numInRound = n / 2;
+  let round = 0;
+  while (numInRound >= 1) {
+    for (let slot = 0; slot < numInRound; slot++) {
+      matches.push({
+        round,
+        slot,
+        team1Ids: null,
+        team2Ids: null,
+        score1: null,
+        score2: null,
+        winner: null,
+      });
+    }
+    numInRound = Math.floor(numInRound / 2);
+    round++;
+  }
+  return matches;
+}
+
 function buildBracketMatches(teams, jumlahTim) {
   let n = Math.min(teams.length, jumlahTim || 8);
-  if (n < 2) return [];
+  if (n < 2) return buildBracketSkeleton(jumlahTim);
   if (n % 2 !== 0) n -= 1;
-  if (n < 2) return [];
+  if (n < 2) return buildBracketSkeleton(jumlahTim);
   const shuffled = shuffle(teams.slice(0, n));
   const teamToIds = (t) => [t.player1Id, t.player2Id].filter(Boolean);
   const matches = [];
@@ -109,8 +133,10 @@ export default function TurnamenBaganPage() {
         let bracket = data.bracket || {};
         const teams = data.teams || [];
         const jumlahTim = Number(data.jumlahTim) || 8;
-        if (teams.length >= 2 && (!bracket.matches || bracket.matches.length === 0)) {
-          const matches = buildBracketMatches(teams, jumlahTim);
+        if (!bracket.matches || bracket.matches.length === 0) {
+          const matches = teams.length >= 2
+            ? buildBracketMatches(teams, jumlahTim)
+            : buildBracketSkeleton(jumlahTim);
           await updateDoc(doc(db, "tournaments", id), { bracket: { matches } });
           bracket = { matches };
         }
@@ -134,7 +160,12 @@ export default function TurnamenBaganPage() {
     load();
   }, [hostChecked, id]);
 
-  const matches = useMemo(() => tournament?.bracket?.matches || [], [tournament?.bracket?.matches]);
+  const matches = useMemo(() => {
+    const fromBracket = tournament?.bracket?.matches;
+    if (fromBracket?.length) return fromBracket;
+    const jumlahTim = Number(tournament?.jumlahTim) || 8;
+    return buildBracketSkeleton(jumlahTim);
+  }, [tournament?.bracket?.matches, tournament?.jumlahTim]);
   const rounds = useMemo(() => {
     if (!matches.length) return [];
     const r = [];
@@ -327,7 +358,7 @@ export default function TurnamenBaganPage() {
         )}
       </div>
 
-      {!loading && tournament && matches.length > 0 && (
+      {!loading && tournament && (
         <section
           style={{
             marginTop: "8px",
