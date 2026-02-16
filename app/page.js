@@ -3,7 +3,7 @@
 import { collection, getDocs, addDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { db } from "../firebase";
 
 import {
@@ -41,6 +41,7 @@ export default function Dashboard() {
   const [court1, setCourt1] = useState(initialCourtState);
   const [extraCourts, setExtraCourts] = useState([]); // COURT 2–8
   const [mounted, setMounted] = useState(false);
+  const courtRefs = useRef({});
   const [allPlayers, setAllPlayers] = useState([]);
   const [showBadgeManager, setShowBadgeManager] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -502,6 +503,41 @@ const updateExtraCourtState = (id, updater) => {
         match & community
       </div>
 
+      {/* NAVIGASI COURT – lompat ke Court 1, 2, 3... */}
+      {([{ id: "court-1", label: "Court 1" }].concat(extraCourts.map((c) => ({ id: c.id, label: c.title })))).length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginBottom: "12px",
+          }}
+        >
+          {[{ id: "court-1", label: "Court 1" }].concat(extraCourts.map((c) => ({ id: c.id, label: c.title }))).map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                const el = courtRefs.current[item.id];
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+              }}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "10px",
+                border: "1px solid #333",
+                background: "#1A1A1A",
+                color: "#9FF5EA",
+                fontSize: "13px",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* COURTS – HORIZONTAL SCROLL */}
       <div
         style={{
@@ -522,6 +558,7 @@ const updateExtraCourtState = (id, updater) => {
         >
           {/* COURT 1 (FIXED) */}
           <div
+            ref={(el) => { courtRefs.current["court-1"] = el; }}
             style={{
               position: "relative",
               minWidth: "min(640px, 70vw)",
@@ -546,6 +583,7 @@ const updateExtraCourtState = (id, updater) => {
           {extraCourts.map((court) => (
             <div
               key={court.id}
+              ref={(el) => { courtRefs.current[court.id] = el; }}
               style={{
                 position: "relative",
                 minWidth: "min(640px, 70vw)",

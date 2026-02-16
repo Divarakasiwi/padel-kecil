@@ -499,7 +499,7 @@ export default function CourtCard({
       </div>
 
       {activePlayer && (
-        <div style={{ marginTop: "18px", padding: "16px", borderRadius: "16px", background: "#111", border: "1px solid #2A2A2A", display: "grid", gap: "12px" }}>
+        <div style={{ position: "relative", zIndex: 10, marginTop: "18px", padding: "16px", borderRadius: "16px", background: "#111", border: "1px solid #2A2A2A", display: "grid", gap: "12px" }}>
           <div style={{ fontSize: "13px", fontWeight: 600, color: "#AAA", marginBottom: "4px" }}>Player Action</div>
           <button
             onClick={() => {
@@ -535,12 +535,18 @@ export default function CourtCard({
             Keluarkan pemain
           </button>
           <button
-            onClick={async () => {
-              if (qrRef.current) { try { await qrRef.current.stop(); } catch (e) {} try { qrRef.current.clear(); } catch (e) {} qrRef.current = null; }
+            type="button"
+            onClick={() => {
+              if (qrRef.current) {
+                try { qrRef.current.stop().catch(() => {}); } catch (_) {}
+                try { qrRef.current.clear().catch(() => {}); } catch (_) {}
+                qrRef.current = null;
+              }
               scanTargetRef.current = null;
               setShowScanner(false);
+              setActivePlayer(null);
             }}
-            style={{ padding: "10px", background: "#222", color: "#888", borderRadius: "10px", cursor: "pointer" }}
+            style={{ height: "52px", minHeight: "48px", padding: "10px", background: "#222", color: "#888", borderRadius: "14px", border: "1px solid #333", cursor: "pointer", fontSize: "15px" }}
           >
             Batal
           </button>
@@ -548,6 +554,7 @@ export default function CourtCard({
       )}
 
       <button
+        type="button"
         disabled={!canFinish}
         onClick={() => canFinish && setShowFinishConfirm(true)}
         style={{ width: "100%", padding: "14px", borderRadius: "12px", border: "1px solid #333", background: canFinish ? "#1F1F1F" : "#0E0E0E", color: canFinish ? "#fff" : "#444", cursor: canFinish ? "pointer" : "not-allowed", marginTop: "12px" }}
@@ -562,17 +569,38 @@ export default function CourtCard({
       )}
 
       {showScanner && (
-        <div style={{ marginTop: 20, padding: 16, borderRadius: 16, background: "#000", textAlign: "center" }}>
-          <div style={{ color: "#fff", marginBottom: 8 }}>Arahkan QR ke kamera</div>
-          <div id={qrContainerIdRef} style={{ width: "100%" }} />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 45,
+            background: "rgba(0,0,0,0.88)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div style={{ color: "#9FF5EA", fontSize: "clamp(14px, 3vw, 16px)", fontWeight: 600, marginBottom: 8, textAlign: "center" }}>
+            {scanTargetRef.current
+              ? `Scan untuk ${title} – ${scanTargetRef.current.teamKey === "team1" ? "Team 1" : "Team 2"}`
+              : "Arahkan QR ke kamera"}
+          </div>
+          <div id={qrContainerIdRef} style={{ width: "min(320px, 90vw)", borderRadius: 12, overflow: "hidden" }} />
           <button
-            onClick={async () => {
-              if (qrRef.current) { try { await qrRef.current.stop(); } catch (e) {} try { qrRef.current.clear(); } catch (e) {} qrRef.current = null; }
+            type="button"
+            onClick={() => {
+              if (qrRef.current) {
+                try { qrRef.current.stop().catch(() => {}); } catch (_) {}
+                try { qrRef.current.clear().catch(() => {}); } catch (_) {}
+                qrRef.current = null;
+              }
               setShowScanner(false);
               scanTargetRef.current = null;
               slotTargetRef.current = null;
             }}
-            style={{ marginTop: 12, padding: "8px 16px", cursor: "pointer" }}
+            style={{ marginTop: 16, padding: "12px 24px", minHeight: 48, borderRadius: 12, border: "1px solid #444", background: "#222", color: "#ccc", cursor: "pointer", fontSize: 15 }}
           >
             Batal
           </button>
