@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { db } from "../../firebase";
 import { HOST_AUTH_KEY } from "../lib/dashboard";
 
 const MONTHS = "Jan Feb Mar Apr Mei Jun Jul Agt Sep Okt Nov Des".split(" ");
@@ -44,6 +44,16 @@ export default function RiwayatDetailPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingMatch, setEditingMatch] = useState(null);
+  const [editForm, setEditForm] = useState({
+    team1Ids: ["", ""],
+    team2Ids: ["", ""],
+    score1: 0,
+    score2: 0,
+    keterangan: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const today = new Date();
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -155,6 +165,72 @@ export default function RiwayatDetailPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 20);
 
+  const openEdit = (m) => {
+    const t1 = m.team1PlayerIds || [];
+    const t2 = m.team2PlayerIds || [];
+    setEditingMatch(m);
+    setEditForm({
+      team1Ids: [t1[0] || "", t1[1] || ""],
+      team2Ids: [t2[0] || "", t2[1] || ""],
+      score1: m.score1 ?? 0,
+      score2: m.score2 ?? 0,
+      keterangan: "",
+    });
+    setSaveError(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMatch?.id) return;
+    const { team1Ids, team2Ids, score1, score2, keterangan } = editForm;
+    const t1 = team1Ids.filter(Boolean);
+    const t2 = team2Ids.filter(Boolean);
+    if (t1.length !== 2 || t2.length !== 2) {
+      setSaveError("Pilih 2 pemain untuk tiap tim.");
+      return;
+    }
+    const ket = (keterangan || "").trim();
+    if (!ket) {
+      setSaveError("Keterangan wajib diisi.");
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const winner = score1 > score2 ? "team1" : score2 > score1 ? "team2" : "draw";
+      await updateDoc(doc(db, "matches", editingMatch.id), {
+        team1PlayerIds: t1,
+        team2PlayerIds: t2,
+        score1: Number(score1) || 0,
+        score2: Number(score2) || 0,
+        winner,
+        editKeterangan: ket,
+        editedAt: new Date().toISOString(),
+      });
+      setMatches((prev) =>
+        prev.map((m) =>
+          m.id === editingMatch.id
+            ? {
+                ...m,
+                team1PlayerIds: t1,
+                team2PlayerIds: t2,
+                score1: Number(score1) || 0,
+                score2: Number(score2) || 0,
+                winner,
+                editKeterangan: ket,
+                editedAt: new Date().toISOString(),
+              }
+            : m
+        )
+      );
+      setEditingMatch(null);
+    } catch (e) {
+      console.error(e);
+      setSaveError("Gagal menyimpan. Cek koneksi.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!hostChecked) return null;
 
   return (
@@ -256,7 +332,24 @@ export default function RiwayatDetailPage() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                       <span style={{ color: "#888" }}>{m.courtName || "–"} · {formatDayKey(m.dayKey)}</span>
-                      <span style={{ color: "#4FD1C5", fontWeight: 600 }}>{formatTime(m.finishedAt)}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ color: "#4FD1C5", fontWeight: 600 }}>{formatTime(m.finishedAt)}</span>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(m)}
+                          style={{
+                            padding: "6px 12px",
+                            background: "#1E3A3A",
+                            border: "1px solid #4FD1C5",
+                            borderRadius: "8px",
+                            color: "#4FD1C5",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </span>
                     </div>
                     <div style={{ color: "#fff" }}>
                       {teamDisplay(m.team1PlayerIds)} <span style={{ color: "#666" }}>vs</span> {teamDisplay(m.team2PlayerIds)}
@@ -267,6 +360,11 @@ export default function RiwayatDetailPage() {
                       {m.winner === "team2" && " · Pemenang: Team 2"}
                       {m.winner === "draw" && " · Seri"}
                     </div>
+                    {m.editKeterangan && (
+                      <div style={{ marginTop: "6px", padding: "8px", background: "#1A2A2A", borderRadius: "6px", color: "#9FF5EA", fontSize: "12px" }}>
+                        Keterangan: {m.editKeterangan}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -308,6 +406,160 @@ export default function RiwayatDetailPage() {
               </div>
             </section>
           </>
+        )}
+
+        {editingMatch && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.7)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "20px",
+            }}
+            onClick={() => !saving && setEditingMatch(null)}
+          >
+            <div
+              style={{
+                background: "#121212",
+                borderRadius: "12px",
+                border: "1px solid #333",
+                padding: "20px",
+                maxWidth: "420px",
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ margin: "0 0 16px", color: "#4FD1C5", fontSize: "16px" }}>Edit Pertandingan</h3>
+              <p style={{ margin: "0 0 12px", color: "#888", fontSize: "12px" }}>
+                {editingMatch.courtName || "–"} · {formatDayKey(editingMatch.dayKey)} {formatTime(editingMatch.finishedAt)}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Team 1 – Pemain 1</label>
+                  <select
+                    value={editForm.team1Ids[0]}
+                    onChange={(e) => setEditForm((f) => ({ ...f, team1Ids: [e.target.value, f.team1Ids[1]] }))}
+                    style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                  >
+                    <option value="">Pilih pemain</option>
+                    {players.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Team 1 – Pemain 2</label>
+                  <select
+                    value={editForm.team1Ids[1]}
+                    onChange={(e) => setEditForm((f) => ({ ...f, team1Ids: [f.team1Ids[0], e.target.value] }))}
+                    style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                  >
+                    <option value="">Pilih pemain</option>
+                    {players.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Team 2 – Pemain 1</label>
+                  <select
+                    value={editForm.team2Ids[0]}
+                    onChange={(e) => setEditForm((f) => ({ ...f, team2Ids: [e.target.value, f.team2Ids[1]] }))}
+                    style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                  >
+                    <option value="">Pilih pemain</option>
+                    {players.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Team 2 – Pemain 2</label>
+                  <select
+                    value={editForm.team2Ids[1]}
+                    onChange={(e) => setEditForm((f) => ({ ...f, team2Ids: [f.team2Ids[0], e.target.value] }))}
+                    style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                  >
+                    <option value="">Pilih pemain</option>
+                    {players.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Skor Team 1</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editForm.score1}
+                      onChange={(e) => setEditForm((f) => ({ ...f, score1: e.target.value }))}
+                      style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Skor Team 2</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editForm.score2}
+                      onChange={(e) => setEditForm((f) => ({ ...f, score2: e.target.value }))}
+                      style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: "4px", color: "#aaa", fontSize: "12px" }}>Keterangan <span style={{ color: "#FF6B6B" }}>*</span></label>
+                  <textarea
+                    value={editForm.keterangan}
+                    onChange={(e) => setEditForm((f) => ({ ...f, keterangan: e.target.value }))}
+                    placeholder="Wajib diisi setelah mengubah pemain/skor"
+                    rows={3}
+                    style={{ width: "100%", padding: "10px", background: "#0B0B0B", border: "1px solid #333", borderRadius: "8px", color: "#fff", resize: "vertical" }}
+                  />
+                </div>
+              </div>
+              {saveError && <p style={{ color: "#FF6B6B", fontSize: "13px", margin: "8px 0 0" }}>{saveError}</p>}
+              <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+                <button
+                  type="button"
+                  onClick={() => !saving && setEditingMatch(null)}
+                  style={{
+                    padding: "10px 16px",
+                    background: "transparent",
+                    border: "1px solid #555",
+                    borderRadius: "8px",
+                    color: "#ccc",
+                    cursor: saving ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  disabled={saving}
+                  style={{
+                    padding: "10px 16px",
+                    background: saving ? "#2A4A4A" : "#4FD1C5",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#0B0B0B",
+                    fontWeight: 600,
+                    cursor: saving ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {saving ? "Menyimpan..." : "Simpan"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </main>
