@@ -123,9 +123,13 @@ export default function RiwayatDetailPage() {
   const pairings = {};
   const winsByTeam = {};
   const winsByPlayer = {};
+  const gamesByPlayer = {};
   matches.forEach((m) => {
     const t1 = m.team1PlayerIds || [];
     const t2 = m.team2PlayerIds || [];
+    [...t1, ...t2].forEach((id) => {
+      if (id) gamesByPlayer[id] = (gamesByPlayer[id] || 0) + 1;
+    });
     if (t1.length >= 2) {
       const k = pairKey(t1[0], t1[1]);
       pairings[k] = (pairings[k] || 0) + 1;
@@ -162,8 +166,11 @@ export default function RiwayatDetailPage() {
       const [a, b] = key.split(" & ");
       return { names: [nameMap[a] || a, nameMap[b] || b].join(" & "), count };
     })
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 20);
+    .sort((a, b) => b.count - a.count);
+
+  const totalMainList = Object.entries(gamesByPlayer)
+    .map(([id, count]) => ({ id, name: nameMap[id] || id, count }))
+    .sort((a, b) => b.count - a.count);
 
   const openEdit = (m) => {
     const t1 = m.team1PlayerIds || [];
@@ -371,18 +378,6 @@ export default function RiwayatDetailPage() {
             </section>
 
             <section style={{ marginBottom: "28px", padding: "16px", background: "#121212", borderRadius: "12px", border: "1px solid #222" }}>
-              <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>PAIRING (siapa main dengan siapa)</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {pairingList.map((p, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #222" }}>
-                    <span style={{ color: "#fff" }}>{p.names}</span>
-                    <span style={{ color: "#4FD1C5" }}>{p.count}× main bersama</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section style={{ marginBottom: "28px", padding: "16px", background: "#121212", borderRadius: "12px", border: "1px solid #222" }}>
               <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>TOP WINNING TEAMS</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 {topTeams.map((t, i) => (
@@ -396,11 +391,35 @@ export default function RiwayatDetailPage() {
 
             <section style={{ marginBottom: "28px", padding: "16px", background: "#121212", borderRadius: "12px", border: "1px solid #222" }}>
               <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>TOP RANK PER ORANG</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div style={{ maxHeight: "240px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
                 {topRank.map((r, i) => (
                   <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #222" }}>
                     <span style={{ color: "#fff" }}>{i + 1}. {r.name}</span>
                     <span style={{ color: "#4FD1C5", fontWeight: 600 }}>{r.wins} menang</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section style={{ marginBottom: "28px", padding: "16px", background: "#121212", borderRadius: "12px", border: "1px solid #222" }}>
+              <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>PAIRING</h2>
+              <div style={{ maxHeight: "240px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
+                {pairingList.map((p, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #222" }}>
+                    <span style={{ color: "#fff" }}>{p.names}</span>
+                    <span style={{ color: "#4FD1C5" }}>{p.count}× main bersama</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section style={{ marginBottom: "28px", padding: "16px", background: "#121212", borderRadius: "12px", border: "1px solid #222" }}>
+              <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>TOTAL MAIN</h2>
+              <div style={{ maxHeight: "240px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
+                {totalMainList.map((r, i) => (
+                  <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #222" }}>
+                    <span style={{ color: "#fff" }}>{i + 1}. {r.name}</span>
+                    <span style={{ color: "#4FD1C5", fontWeight: 600 }}>{r.count}× main</span>
                   </div>
                 ))}
               </div>
