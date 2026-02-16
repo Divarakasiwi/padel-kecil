@@ -188,11 +188,15 @@ export default function BaristaPage() {
     };
 
     function stopScanner() {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-        scannerRef.current.clear().catch(() => {});
-        scannerRef.current = null;
-      }
+      if (!scannerRef.current) return;
+      const s = scannerRef.current;
+      scannerRef.current = null;
+      try {
+        s.stop().catch(() => {});
+      } catch (_) {}
+      try {
+        s.clear().catch(() => {});
+      } catch (_) {}
     }
 
     startScan();

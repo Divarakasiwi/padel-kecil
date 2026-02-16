@@ -277,11 +277,17 @@ export default function CourtCard({
     startScan();
     return () => {
       isCancelled = true;
-      if (qrRef.current) {
-        try { qrRef.current.stop(); } catch (e) {}
-        try { qrRef.current.clear(); } catch (e) {}
-        qrRef.current = null;
-      }
+      const s = qrRef.current;
+      qrRef.current = null;
+      if (!s) return;
+      try {
+        const stopP = s.stop();
+        if (stopP && typeof stopP.catch === "function") stopP.catch(() => {});
+      } catch (_) {}
+      try {
+        const clearP = s.clear();
+        if (clearP && typeof clearP.catch === "function") clearP.catch(() => {});
+      } catch (_) {}
     };
   }, [showScanner]);
 
