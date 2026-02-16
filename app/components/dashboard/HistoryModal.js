@@ -118,9 +118,16 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
       q = collection(db, "matches");
     }
 
+    // Jangan pakai data dari cache dulu → hanya server. Mencegah "muncul hilang" setelah data match di Firestore dihapus.
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
     const unsubscribe = onSnapshot(
       q,
       (snap) => {
+        if (snap.metadata?.fromCache) return;
+        clearTimeout(fallbackTimer);
         const { list, totalMatches: total } = processSnapshot(snap, allPlayers);
         setTopTeams(list);
         setTotalMatches(total);
@@ -128,6 +135,7 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
         setLoading(false);
       },
       (err) => {
+        clearTimeout(fallbackTimer);
         setError("Gagal memuat riwayat.");
         setTopTeams([]);
         setTotalMatches(0);
@@ -135,7 +143,10 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(fallbackTimer);
+      unsubscribe();
+    };
   }, [open, period, allPlayers, retryCount]);
 
   if (!open) return null;
