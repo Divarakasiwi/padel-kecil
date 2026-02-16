@@ -188,14 +188,16 @@ export default function TurnamenBaganPage() {
     const s2 = Number(score2);
     if (matchIdx < 0 || matchIdx >= matches.length) return;
     const m = matches[matchIdx];
-    const winner = s1 > s2 ? "team1" : s2 > s1 ? "team2" : null;
+    // Sama dengan dashboard: winner "team1" | "team2" | "draw" (seri)
+    const winner = s1 > s2 ? "team1" : s2 > s1 ? "team2" : "draw";
     const maxRound = matches.length ? Math.max(...matches.map((x) => x.round)) : 0;
     const next = getNextMatch(m.round, m.slot, maxRound);
     const newMatches = matches.map((match, i) => {
       if (i !== matchIdx) return match;
       return { ...match, score1: s1, score2: s2, winner };
     });
-    if (next && winner) {
+    // Hanya majukan pemenang ke ronde berikutnya (bukan seri)
+    if (next && (winner === "team1" || winner === "team2")) {
       const nextIdx = matchIndex(newMatches, next.round, next.slot);
       if (nextIdx >= 0) {
         const winnerIds = winner === "team1" ? m.team1Ids : m.team2Ids;
@@ -372,8 +374,11 @@ export default function TurnamenBaganPage() {
           }}
         >
           <h2 style={{ margin: "0 0 8px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em", textAlign: "center" }}>BAGAN PERTANDINGAN</h2>
-          <p style={{ margin: "0 0 16px", fontSize: "12px", color: "#888", textAlign: "center" }}>
+          <p style={{ margin: "0 0 8px", fontSize: "12px", color: "#888", textAlign: "center" }}>
             Isi skor di setiap kotak, lalu simpan. Pemenang otomatis masuk ke kotak berikutnya. Geser ke samping untuk bagan penuh (landscape).
+          </p>
+          <p style={{ margin: "0 0 16px", fontSize: "11px", color: "#666", textAlign: "center" }}>
+            <strong>Tombol Simpan:</strong> menyimpan skor dan pemenang ke bagan turnamen ini. Data disimpan di Firestore → koleksi <code style={{ background: "#222", padding: "2px 6px", borderRadius: "4px" }}>tournaments</code> → dokumen turnamen ini → field <code style={{ background: "#222", padding: "2px 6px", borderRadius: "4px" }}>bracket.matches</code>.
           </p>
           <div style={{ overflowX: "auto", paddingBottom: "16px", WebkitOverflowScrolling: "touch" }}>
             <div
@@ -386,10 +391,21 @@ export default function TurnamenBaganPage() {
                 justifyContent: "flex-start",
               }}
             >
-                    {rounds.map((roundMatches, roundIdx) => (
+                    {rounds.map((roundMatches, roundIdx) => {
+                      const isFinal = roundIdx === rounds.length - 1;
+                      const isSemi = roundIdx === rounds.length - 2;
+                      const isR1 = roundIdx === 0;
+                      const glowStyle = isFinal
+                        ? { boxShadow: "0 0 24px rgba(220, 80, 80, 0.5), 0 0 48px rgba(220, 80, 80, 0.25)", border: "1px solid rgba(220, 80, 80, 0.5)", borderRadius: "12px", padding: "12px 12px 16px", margin: "0 -4px" }
+                        : isSemi
+                          ? { boxShadow: "0 0 20px rgba(214, 199, 161, 0.45), 0 0 40px rgba(214, 199, 161, 0.2)", border: "1px solid rgba(214, 199, 161, 0.4)", borderRadius: "12px", padding: "12px 12px 16px", margin: "0 -4px" }
+                          : isR1
+                            ? { boxShadow: "0 0 20px rgba(79, 209, 197, 0.4), 0 0 40px rgba(79, 209, 197, 0.15)", border: "1px solid rgba(79, 209, 197, 0.4)", borderRadius: "12px", padding: "12px 12px 16px", margin: "0 -4px" }
+                            : { padding: "0 8px" };
+                      return (
                       <div key={roundIdx} style={{ display: "flex", alignItems: "center", gap: "0" }}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center", padding: "0 8px" }}>
-                          <div style={{ fontSize: "12px", color: "#888", marginBottom: "4px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center", ...glowStyle }}>
+                          <div style={{ fontSize: "12px", color: isFinal ? "#E87A7A" : isSemi ? "#D6C7A1" : isR1 ? "#4FD1C5" : "#888", marginBottom: "4px", fontWeight: isFinal || isSemi || isR1 ? 600 : 400 }}>
                             {roundIdx === rounds.length - 1
                               ? "Final"
                               : roundIdx === rounds.length - 2
@@ -428,7 +444,8 @@ export default function TurnamenBaganPage() {
                           />
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
           </section>
