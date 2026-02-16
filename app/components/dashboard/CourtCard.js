@@ -123,6 +123,7 @@ export default function CourtCard({
   const [activePlayer, setActivePlayer] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [scanErrorMessage, setScanErrorMessage] = useState(null);
 
   const slotTargetRef = useRef(null);
   const qrRef = useRef(null);
@@ -153,6 +154,7 @@ export default function CourtCard({
 
   const openScannerForSlot = (teamKey, slotIndex) => {
     scanTargetRef.current = { teamKey, slotIndex };
+    setScanErrorMessage(null);
     setShowScanner(true);
   };
 
@@ -189,26 +191,12 @@ export default function CourtCard({
             const playerId = decodedText.trim();
 
             if (activePlayerIdsRef.current.has(playerId)) {
-              alert("Pemain ini sudah ada di court ini.");
-              if (qrRef.current) {
-                try { await qrRef.current.stop(); } catch (e) {}
-                try { await qrRef.current.clear(); } catch (e) {}
-                qrRef.current = null;
-              }
-              setShowScanner(false);
-              scanTargetRef.current = null;
+              setScanErrorMessage("Pemain ini sudah ada di court ini.");
               reportStatusRef.current?.({ level: "warning", message: "Pemain sudah aktif di court ini." });
               return;
             }
             if (allOccupiedRef.current.has(playerId)) {
-              alert("Pemain ini sudah bermain di court lain. Satu pemain hanya boleh di satu court.");
-              if (qrRef.current) {
-                try { await qrRef.current.stop(); } catch (e) {}
-                try { await qrRef.current.clear(); } catch (e) {}
-                qrRef.current = null;
-              }
-              setShowScanner(false);
-              scanTargetRef.current = null;
+              setScanErrorMessage("Pemain ini sudah bermain di court lain. Satu pemain hanya boleh di satu court.");
               reportStatusRef.current?.({ level: "warning", message: "Pemain sudah di court lain." });
               return;
             }
@@ -217,28 +205,19 @@ export default function CourtCard({
             const snap = await getDoc(playerRef);
 
             if (!snap.exists()) {
-              alert("Player tidak ditemukan");
-              if (qrRef.current) {
-                try { await qrRef.current.stop(); } catch (e) {}
-                try { await qrRef.current.clear(); } catch (e) {}
-                qrRef.current = null;
-              }
-              setShowScanner(false);
-              scanTargetRef.current = null;
-              reportStatusRef.current?.({ level: "warning", message: "QR tidak cocok dengan data player di server. Pastikan QR sesuai dengan data registrasi." });
+              setScanErrorMessage("Pemain tidak ditemukan. Pastikan QR sesuai data registrasi.");
+              reportStatusRef.current?.({ level: "warning", message: "QR tidak cocok dengan data player di server." });
               return;
             }
 
             const assigned = getAssignedColor?.();
             if (!assigned) {
-              alert("Semua 50 warna sudah dipakai. Keluarkan pemain atau reset court untuk membebaskan warna.");
-              setShowScanner(false);
-              scanTargetRef.current = null;
+              setScanErrorMessage("Semua 50 warna sudah dipakai. Keluarkan pemain atau reset court untuk membebaskan warna.");
               return;
             }
             setCourtRef.current((prev) => {
               if (prev[target.teamKey].length >= 2) {
-                alert("Tim ini sudah penuh");
+                setTimeout(() => setScanErrorMessage("Tim ini sudah penuh."), 0);
                 return prev;
               }
               return {
@@ -409,7 +388,7 @@ export default function CourtCard({
             type="text"
             value={noteDraft}
             onChange={(e) => setNoteDraft(e.target.value)}
-            placeholder="Misal: match besar taruhan 100ribu"
+            placeholder="match besar"
             autoFocus
             style={{
               flex: 1,
@@ -597,6 +576,7 @@ export default function CourtCard({
                 qrRef.current = null;
               }
               setShowScanner(false);
+              setScanErrorMessage(null);
               scanTargetRef.current = null;
               slotTargetRef.current = null;
             }}
@@ -604,6 +584,33 @@ export default function CourtCard({
           >
             Batal
           </button>
+
+          {scanErrorMessage && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setScanErrorMessage(null)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setScanErrorMessage(null); }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.9)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 24,
+                cursor: "pointer",
+              }}
+            >
+              <p style={{ color: "#FF8A8A", fontSize: "clamp(15px, 3.5vw, 17px)", fontWeight: 600, textAlign: "center", margin: 0 }}>
+                {scanErrorMessage}
+              </p>
+              <p style={{ color: "#888", fontSize: 13, marginTop: 12, marginBottom: 0 }}>
+                Tap di mana saja untuk lanjut scan
+              </p>
+            </div>
+          )}
         </div>
       )}
 
