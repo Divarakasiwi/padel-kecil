@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebase";
 
@@ -187,21 +188,40 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
           <h2 style={{ margin: 0, fontSize: "18px", color: "#E8FFF9" }}>
             Riwayat pertandingan
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "1px solid #444",
-              color: "#9FF5EA",
-              padding: "8px 14px",
-              borderRadius: "10px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-          >
-            Tutup
-          </button>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Link
+              href="/riwayat-detail"
+              onClick={onClose}
+              style={{
+                background: "rgba(79,209,197,0.2)",
+                border: "1px solid #4FD1C5",
+                color: "#9FF5EA",
+                padding: "8px 14px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Lihat detail lengkap
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: "transparent",
+                border: "1px solid #444",
+                color: "#9FF5EA",
+                padding: "8px 14px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
+              Tutup
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: "16px 20px", borderBottom: "1px solid #222" }}>

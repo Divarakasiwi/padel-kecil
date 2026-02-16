@@ -32,11 +32,28 @@ export default function Dashboard() {
      COURT STATE
   ===================== */
 
-  const storageDayKey = useMemo(() => getTodayKey(), []);
+  const [storageDayKey, setStorageDayKey] = useState(() => getTodayKey());
   const storageKey = useMemo(
     () => `padelkecil:courts:${storageDayKey}`,
     [storageDayKey]
   );
+
+  // Setelah jam 00:00, pakai tanggal baru supaya court reset per hari
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const checkDay = () => {
+      const today = getTodayKey();
+      if (today !== storageDayKey) setStorageDayKey(today);
+    };
+    checkDay();
+    const interval = setInterval(checkDay, 60 * 1000);
+    const onVisibility = () => { if (document.visibilityState === "visible") checkDay(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [storageDayKey]);
 
   const [court1, setCourt1] = useState(initialCourtState);
   const [extraCourts, setExtraCourts] = useState([]); // COURT 2–8
@@ -171,17 +188,24 @@ useEffect(() => {
   try {
     if (typeof window === "undefined") return;
     const raw = localStorage.getItem(storageKey);
-    if (!raw) return;
-
+    if (!raw) {
+      setCourt1(initialCourtState);
+      setExtraCourts([]);
+      return;
+    }
     const parsed = JSON.parse(raw);
     if (parsed && parsed.court1) {
       setCourt1({ ...initialCourtState, ...parsed.court1, team1: parsed.court1.team1 ?? [], team2: parsed.court1.team2 ?? [] });
+    } else {
+      setCourt1(initialCourtState);
     }
     if (parsed && Array.isArray(parsed.extraCourts)) {
       setExtraCourts(parsed.extraCourts.map((c) => ({
         ...c,
         state: c.state ? { ...initialCourtState, ...c.state, team1: c.state.team1 ?? [], team2: c.state.team2 ?? [] } : initialCourtState,
       })));
+    } else {
+      setExtraCourts([]);
     }
   } catch (e) {
     console.error("Gagal load state court dari storage", e);
@@ -381,7 +405,7 @@ const updateExtraCourtState = (id, updater) => {
       .sort((a, b) => b.times - a.times);
   }, [allPlayers, pendingMatchesCount]);
 
-  // Top 3 pemain (hari ini) berdasarkan jumlah kemenangan individu
+  // Top rank per orang (hari ini) berdasarkan jumlah kemenangan
   const topWinnersToday = useMemo(() => {
     const today = getTodayKey();
     const queue = loadMatchQueue();
@@ -406,7 +430,37 @@ const updateExtraCourtState = (id, updater) => {
     return Object.entries(winsById)
       .map(([id, wins]) => ({ id, name: nameById[id] || id, wins }))
       .sort((a, b) => b.wins - a.wins)
-      .slice(0, 3);
+      .slice(0, 10);
+  }, [allPlayers, pendingMatchesCount]);
+
+  // Top winning teams (hari ini): tim yang menang terbanyak
+  const topWinningTeamsToday = useMemo(() => {
+    const today = getTodayKey();
+    const queue = loadMatchQueue();
+    const todayMatches = queue.filter((item) => item.data?.dayKey === today);
+    const winsByTeamKey = {};
+    todayMatches.forEach((item) => {
+      const d = item.data;
+      if (!d) return;
+      const winner = d.winner;
+      const t1 = d.team1PlayerIds || [];
+      const t2 = d.team2PlayerIds || [];
+      const k1 = [...(t1 || [])].filter(Boolean).sort().join(",");
+      const k2 = [...(t2 || [])].filter(Boolean).sort().join(",");
+      if (winner === "team1" && k1) winsByTeamKey[k1] = (winsByTeamKey[k1] || 0) + 1;
+      else if (winner === "team2" && k2) winsByTeamKey[k2] = (winsByTeamKey[k2] || 0) + 1;
+    });
+    const nameById = (allPlayers || []).reduce((acc, p) => {
+      acc[p.id] = p.name || p.id;
+      return acc;
+    }, {});
+    return Object.entries(winsByTeamKey)
+      .map(([key, wins]) => ({
+        team: key.split(",").map((id) => nameById[id] || id).join(" + "),
+        wins,
+      }))
+      .sort((a, b) => b.wins - a.wins)
+      .slice(0, 10);
   }, [allPlayers, pendingMatchesCount]);
 
   if (!hostChecked) {
@@ -747,8 +801,8 @@ const updateExtraCourtState = (id, updater) => {
         </InfoCard>
       </div>
 
-      {/* TOP 3 PEMENANG HARI INI (per pemain) */}
-      <InfoCard title="JUARA 1, 2, 3 (HARI INI)">
+      {/* TOP RANK (HARI INI) – per orang */}
+      <InfoCard title="TOP RANK (HARI INI)">
         {topWinnersToday.length === 0 ? (
           <div style={{ padding: "12px 0", color: "#9A9A9A", fontSize: "14px" }}>
             Belum ada pertandingan selesai hari ini.
@@ -759,6 +813,23 @@ const updateExtraCourtState = (id, updater) => {
               key={p.id}
               left={`${i + 1}. ${p.name}`}
               right={`${p.wins} wins`}
+            />
+          ))
+        )}
+      </InfoCard>
+
+      {/* TOP WINNING TEAMS (HARI INI) */}
+      <InfoCard title="TOP WINNING TEAMS (HARI INI)">
+        {topWinningTeamsToday.length === 0 ? (
+          <div style={{ padding: "12px 0", color: "#9A9A9A", fontSize: "14px" }}>
+            Belum ada pertandingan selesai hari ini.
+          </div>
+        ) : (
+          topWinningTeamsToday.map((t, i) => (
+            <InfoRow
+              key={`${t.team}-${i}`}
+              left={`${i + 1}. ${t.team}`}
+              right={`${t.wins} wins`}
             />
           ))
         )}
