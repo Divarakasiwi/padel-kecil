@@ -56,9 +56,9 @@ function TeamColumn({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                {p.photoUrl && (
+                {p.photoThumbnail ? (
                   <img
-                    src={p.photoUrl || "/avatar-placeholder.png"}
+                    src={p.photoThumbnail}
                     alt={p.name}
                     style={{
                       width: 36,
@@ -69,6 +69,24 @@ function TeamColumn({
                       overflow: "hidden",
                     }}
                   />
+                ) : (
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      background: "#222",
+                      color: "#9FF5EA",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {(p.name || "?").charAt(0).toUpperCase()}
+                  </div>
                 )}
                 <div>
                   <div>{p.name}</div>
@@ -232,6 +250,7 @@ export default function CourtCard({
                     name: snap.data().name,
                     isVIP: snap.data().isVIP || false,
                     photoUrl: snap.data().photoUrl || "",
+                    photoThumbnail: snap.data().photoThumbnail || "",
                     badge: snap.data().badge || null,
                     colorIndex: assigned.colorIndex,
                   },
@@ -647,7 +666,7 @@ export default function CourtCard({
                   }
                   setCourt((prev) => ({
                     ...prev,
-                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", isVIP: p.isVIP || false, badge: p.badge || null, colorIndex: assigned.colorIndex }],
+                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", photoThumbnail: p.photoThumbnail || "", isVIP: p.isVIP || false, badge: p.badge || null, colorIndex: assigned.colorIndex }],
                   }));
                   activePlayerIdsRef.current.add(p.id);
                   setShowPlayerPicker(false);

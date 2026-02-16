@@ -172,6 +172,7 @@ export default function BaristaPage() {
                 showSuccess({
                   name: playerData.name || playerId,
                   photoUrl: playerData.photoUrl || "",
+                  photoThumbnail: playerData.photoThumbnail || "",
                 });
               } catch (err) {
                 showError("Koneksi gagal, coba lagi.");
@@ -324,9 +325,9 @@ export default function BaristaPage() {
             padding: "24px",
           }}
         >
-          {successPlayer?.photoUrl ? (
+          {successPlayer?.photoThumbnail ? (
             <img
-              src={successPlayer.photoUrl}
+              src={successPlayer.photoThumbnail}
               alt={successPlayer.name}
               style={{
                 width: 100,
@@ -350,10 +351,11 @@ export default function BaristaPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "32px",
-                color: "#666",
+                color: "#9FF5EA",
+                fontWeight: 600,
               }}
             >
-              ?
+              {(successPlayer?.name || "?").charAt(0).toUpperCase()}
             </div>
           )}
           <p style={{ fontSize: "20px", fontWeight: 600, color: "#E8FFF9", marginBottom: "8px" }}>

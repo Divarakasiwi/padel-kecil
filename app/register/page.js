@@ -44,8 +44,8 @@ const REGISTER_CODE =
     ? process.env.NEXT_PUBLIC_REGISTER_CODE
     : "123456"; // ganti via env di produksi
 
-// Sementara disembunyikan agar bisa cek hasil cetak kartu tanpa upload foto
-const HIDE_PHOTO_UPLOAD = true;
+// Foto wajah di-upload ke Firebase Storage (bucket) dan URL disimpan di Firestore. Aktifkan agar pemain bisa isi foto.
+const HIDE_PHOTO_UPLOAD = false;
 
 const MAX_NAME_LENGTH = 40;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 menit
@@ -96,6 +96,37 @@ async function compressImage(file, maxSize = 1024) {
       );
     };
     img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/** Gambar base64 untuk Firestore: court/barista pakai thumbnail kecil, kartu pemain pakai ukuran lebih besar. */
+async function createPhotoDataUrl(file, size, quality = 0.6) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve("");
+        return;
+      }
+      let w = img.width;
+      let h = img.height;
+      if (w > h && w > size) {
+        h = (h * size) / w;
+        w = size;
+      } else if (h > size) {
+        w = (w * size) / h;
+        h = size;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+      resolve(dataUrl || "");
+    };
+    img.onerror = () => resolve("");
     img.src = URL.createObjectURL(file);
   });
 }
@@ -366,19 +397,25 @@ export default function RegisterPage() {
       setLoading(true);
 
       let photoUrl = "";
+      let photoThumbnail = "";
+      let photoCard = "";
       if (!HIDE_PHOTO_UPLOAD && photoFile) {
         // compress image jika besar
         let fileToUpload = photoFile;
         if (photoFile.size > 3 * 1024 * 1024) {
           fileToUpload = await compressImage(photoFile);
         }
-        // upload ke Storage
+        // upload ke Storage (untuk arsip)
         const storageRef = ref(
           storage,
           `players/${Date.now()}_${fileToUpload.name.replace(/\s+/g, "_")}`
         );
         const snapshot = await uploadBytes(storageRef, fileToUpload);
         photoUrl = await getDownloadURL(snapshot.ref);
+        // thumbnail kecil: court/barista (tanpa download Storage)
+        photoThumbnail = await createPhotoDataUrl(fileToUpload, 64, 0.6);
+        // ukuran kartu: tampilan bagus di kartu pemain tanpa download Storage
+        photoCard = await createPhotoDataUrl(fileToUpload, 280, 0.78);
       }
 
       // simpan ke Firestore
@@ -386,6 +423,8 @@ export default function RegisterPage() {
         name: normalizedName,
         phone: phone.replace(/\D/g, ""),
         photoUrl,
+        photoThumbnail,
+        photoCard,
         badge: null,
         isVIP: false,
         status: "active",
@@ -399,6 +438,8 @@ export default function RegisterPage() {
         id: playerId,
         name: normalizedName,
         photoUrl,
+        photoThumbnail,
+        photoCard,
         badge: null,
         isVIP: false,
       });
@@ -852,9 +893,9 @@ export default function RegisterPage() {
                     zIndex: 1,
                   }}
                 >
-                  {player.photoUrl ? (
+                  {(player.photoCard || player.photoThumbnail || player.photoUrl) ? (
                     <img
-                      src={player.photoUrl}
+                      src={player.photoCard || player.photoThumbnail || player.photoUrl}
                       alt={player.name}
                       style={{
                         width: 72,
