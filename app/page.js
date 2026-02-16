@@ -859,7 +859,7 @@ const updateExtraCourtState = (id, updater) => {
       </div>
 
       {/* RIWAYAT CLAIM MINUMAN */}
-      <div style={{ marginTop: "12px", marginBottom: "32px" }}>
+      <div style={{ marginTop: "12px" }}>
         <button
           type="button"
           onClick={() => setShowClaimHistoryModal(true)}
@@ -879,6 +879,34 @@ const updateExtraCourtState = (id, updater) => {
         >
           Riwayat claim minuman
         </button>
+      </div>
+
+      {/* TURNAMEN */}
+      <div style={{ marginTop: "12px", marginBottom: "32px" }}>
+        <Link
+          href="/turnamen/baru"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            minHeight: "48px",
+            padding: "16px 20px",
+            background: "rgba(220, 80, 80, 0.12)",
+            border: "1px solid rgba(220, 80, 80, 0.6)",
+            borderRadius: "14px",
+            color: "#E87A7A",
+            fontSize: "15px",
+            fontWeight: 500,
+            cursor: "pointer",
+            letterSpacing: "0.04em",
+            textDecoration: "none",
+            boxSizing: "border-box",
+            boxShadow: "0 0 20px rgba(220, 80, 80, 0.35), 0 0 40px rgba(220, 80, 80, 0.15)",
+          }}
+        >
+          Turnamen
+        </Link>
       </div>
 
       {showHistoryModal && (
