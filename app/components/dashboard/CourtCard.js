@@ -14,13 +14,14 @@ function getPlayerStyle(p) {
 
 function TeamColumn({
   title,
-  players,
+  players: playersProp,
   teamKey,
   color,
   onSelect,
   isFinished,
   onEmptySlotClick,
 }) {
+  const players = Array.isArray(playersProp) ? playersProp : [];
   const MAX_PLAYER = 2;
   const emptyCount = Math.max(0, MAX_PLAYER - players.length);
 
@@ -162,8 +163,8 @@ export default function CourtCard({
 
   useEffect(() => {
     const ids = new Set();
-    court.team1.forEach((p) => ids.add(p.id));
-    court.team2.forEach((p) => ids.add(p.id));
+    (court.team1 || []).forEach((p) => ids.add(p.id));
+    (court.team2 || []).forEach((p) => ids.add(p.id));
     activePlayerIdsRef.current = ids;
   }, [court.team1, court.team2]);
 
@@ -284,13 +285,15 @@ export default function CourtCard({
     };
   }, [showScanner]);
 
-  const isFinished = court.finished;
-  const totalScore = court.score1 + court.score2;
+  const score1 = court.score1 ?? 0;
+  const score2 = court.score2 ?? 0;
+  const isFinished = court.finished ?? false;
+  const totalScore = score1 + score2;
   const isMaxScore = totalScore >= 21;
   const canAdd = !isFinished && !isMaxScore;
   const canFinish = totalScore === 21 && !isFinished;
   const winner = isFinished
-    ? court.score1 > court.score2 ? "team1" : court.score2 > court.score1 ? "team2" : null
+    ? score1 > score2 ? "team1" : score2 > score1 ? "team2" : null
     : null;
 
   const addTeam1 = () => {
@@ -300,10 +303,10 @@ export default function CourtCard({
     if (!isFinished && !isMaxScore) setCourt((prev) => ({ ...prev, score2: prev.score2 + 1 }));
   };
   const reduceTeam1 = () => {
-    if (!isFinished && court.score1 > 0) setCourt((prev) => ({ ...prev, score1: prev.score1 - 1 }));
+    if (!isFinished && score1 > 0) setCourt((prev) => ({ ...prev, score1: (prev.score1 ?? 0) - 1 }));
   };
   const reduceTeam2 = () => {
-    if (!isFinished && court.score2 > 0) setCourt((prev) => ({ ...prev, score2: prev.score2 - 1 }));
+    if (!isFinished && score2 > 0) setCourt((prev) => ({ ...prev, score2: (prev.score2 ?? 0) - 1 }));
   };
 
   const needsAttention = isFinished;
@@ -326,11 +329,11 @@ export default function CourtCard({
         dayKey: getTodayKey(),
         finishedAt: new Date().toISOString(),
         courtName: title,
-        score1: court.score1,
-        score2: court.score2,
-        winner: court.score1 > court.score2 ? "team1" : court.score2 > court.score1 ? "team2" : "draw",
-        team1PlayerIds: court.team1.map((p) => p.id),
-        team2PlayerIds: court.team2.map((p) => p.id),
+        score1,
+        score2,
+        winner: score1 > score2 ? "team1" : score2 > score1 ? "team2" : "draw",
+        team1PlayerIds: (court.team1 || []).map((p) => p.id),
+        team2PlayerIds: (court.team2 || []).map((p) => p.id),
         note: (court.note ?? "").trim() || null,
       };
       reportStatus?.({ level: "syncing", message: "Hasil match tersimpan di perangkat dan sedang dikirim ke server (jika koneksi tersedia)." });
@@ -449,7 +452,7 @@ export default function CourtCard({
         <TeamColumn
           title="TEAM 1"
           teamKey="team1"
-          players={court.team1}
+          players={court.team1 || []}
           color="#4FD1C5"
           onSelect={(player) => setActivePlayer({ player, fromTeam: "team1" })}
           isFinished={isFinished}
@@ -458,7 +461,7 @@ export default function CourtCard({
         <TeamColumn
           title="TEAM 2"
           teamKey="team2"
-          players={court.team2}
+          players={court.team2 || []}
           color="#D6C7A1"
           onSelect={(player) => setActivePlayer({ player, fromTeam: "team2" })}
           isFinished={isFinished}
@@ -469,17 +472,17 @@ export default function CourtCard({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "center", minWidth: 0 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
           <div onClick={addTeam1} style={{ fontSize: "38px", fontWeight: 700, color: canAdd ? "#4FD1C5" : "#555", cursor: canAdd ? "pointer" : "not-allowed" }}>
-            {court.score1}
+            {score1}
           </div>
-          <button onClick={reduceTeam1} disabled={court.score1 === 0 || isFinished} style={{ padding: "8px 16px", fontSize: "14px", minWidth: "48px", minHeight: "40px", borderRadius: "10px", border: "1px solid #4FD1C555", background: "#0B0B0B", color: "#4FD1C5", cursor: "pointer" }}>
+          <button onClick={reduceTeam1} disabled={score1 === 0 || isFinished} style={{ padding: "8px 16px", fontSize: "14px", minWidth: "48px", minHeight: "40px", borderRadius: "10px", border: "1px solid #4FD1C555", background: "#0B0B0B", color: "#4FD1C5", cursor: "pointer" }}>
             −
           </button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
           <div onClick={addTeam2} style={{ fontSize: "38px", fontWeight: 700, color: canAdd ? "#D6C7A1" : "#555", cursor: canAdd ? "pointer" : "not-allowed" }}>
-            {court.score2}
+            {score2}
           </div>
-          <button onClick={reduceTeam2} disabled={court.score2 === 0 || isFinished} style={{ padding: "8px 16px", fontSize: "14px", minWidth: "48px", minHeight: "40px", borderRadius: "10px", border: "1px solid #D6C7A1", background: "#0B0B0B", color: "#D6C7A1", cursor: "pointer" }}>
+          <button onClick={reduceTeam2} disabled={score2 === 0 || isFinished} style={{ padding: "8px 16px", fontSize: "14px", minWidth: "48px", minHeight: "40px", borderRadius: "10px", border: "1px solid #D6C7A1", background: "#0B0B0B", color: "#D6C7A1", cursor: "pointer" }}>
             −
           </button>
         </div>

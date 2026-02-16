@@ -174,10 +174,13 @@ useEffect(() => {
 
     const parsed = JSON.parse(raw);
     if (parsed && parsed.court1) {
-      setCourt1(parsed.court1);
+      setCourt1({ ...initialCourtState, ...parsed.court1, team1: parsed.court1.team1 ?? [], team2: parsed.court1.team2 ?? [] });
     }
     if (parsed && Array.isArray(parsed.extraCourts)) {
-      setExtraCourts(parsed.extraCourts);
+      setExtraCourts(parsed.extraCourts.map((c) => ({
+        ...c,
+        state: c.state ? { ...initialCourtState, ...c.state, team1: c.state.team1 ?? [], team2: c.state.team2 ?? [] } : initialCourtState,
+      })));
     }
   } catch (e) {
     console.error("Gagal load state court dari storage", e);
