@@ -95,14 +95,28 @@ export default function TurnamenListPage() {
         {!loading && tournaments.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
             {tournaments.map((t) => (
-              <div
+              <Link
                 key={t.id}
+                href={`/turnamen/${t.id}/bagan`}
                 style={{
+                  display: "block",
                   padding: "16px",
                   background: "#121212",
                   borderRadius: "12px",
                   border: "1px solid #222",
                   fontSize: "14px",
+                  textDecoration: "none",
+                  color: "inherit",
+                  cursor: "pointer",
+                  transition: "border-color 0.2s, background 0.2s",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = "#4FD1C5";
+                  e.currentTarget.style.background = "#1a1a1a";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = "#222";
+                  e.currentTarget.style.background = "#121212";
                 }}
               >
                 <div style={{ fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
@@ -111,7 +125,7 @@ export default function TurnamenListPage() {
                 <div style={{ color: "#888", fontSize: "13px" }}>
                   {t.jumlahTim || "?"} tim · {formatDayKey(t.tanggalMulai)} – {formatDayKey(t.tanggalSelesai)}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
