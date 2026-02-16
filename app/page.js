@@ -13,6 +13,7 @@ import {
   saveMatchQueue,
   MATCH_QUEUE_KEY,
   initialCourtState,
+  getRandomUnusedColor,
 } from "./lib/dashboard";
 
 import Header from "./components/dashboard/Header";
@@ -302,6 +303,21 @@ const updateExtraCourtState = (id, updater) => {
     return ids;
   }, [court1, extraCourts]);
 
+  // Indeks warna yang sedang dipakai (satu warna satu orang di semua court)
+  const usedColorIndices = useMemo(() => {
+    const used = new Set();
+    const addFrom = (list) => (list || []).forEach((p) => { if (typeof p.colorIndex === "number") used.add(p.colorIndex); });
+    addFrom(court1.team1);
+    addFrom(court1.team2);
+    extraCourts.forEach((c) => {
+      addFrom(c.state?.team1);
+      addFrom(c.state?.team2);
+    });
+    return used;
+  }, [court1, extraCourts]);
+
+  const getAssignedColor = useMemo(() => () => getRandomUnusedColor(usedColorIndices), [usedColorIndices]);
+
   /* =====================
      DATA RINGAN (HOST)
   ===================== */
@@ -519,6 +535,7 @@ const updateExtraCourtState = (id, updater) => {
               onMatchFinished={handleMatchFinished}
               allPlayers={allPlayers}
               allOccupiedPlayerIds={allOccupiedPlayerIds}
+              getAssignedColor={getAssignedColor}
             />
           </div>
 
@@ -572,6 +589,7 @@ const updateExtraCourtState = (id, updater) => {
                 onMatchFinished={handleMatchFinished}
                 allPlayers={allPlayers}
                 allOccupiedPlayerIds={allOccupiedPlayerIds}
+                getAssignedColor={getAssignedColor}
               />
             </div>
           ))}

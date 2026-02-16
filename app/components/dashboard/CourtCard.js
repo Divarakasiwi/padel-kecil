@@ -4,7 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
-import { getTodayKey, initialCourtState, SLOT_ORDER, SLOT_COLORS } from "../../lib/dashboard";
+import { getTodayKey, initialCourtState, PALETTE } from "../../lib/dashboard";
+
+const defaultPlayerStyle = { bg: "#0B0B0B", border: "#333", text: "#888" };
+function getPlayerStyle(p) {
+  if (typeof p.colorIndex === "number" && PALETTE[p.colorIndex]) return PALETTE[p.colorIndex];
+  return defaultPlayerStyle;
+}
 
 function TeamColumn({
   title,
@@ -25,7 +31,7 @@ function TeamColumn({
       </div>
       <div style={{ display: "grid", gap: "10px", flex: 1 }}>
         {players.map((p) => {
-          const slotColor = p.slot ? SLOT_COLORS[p.slot] : null;
+          const style = getPlayerStyle(p);
           return (
             <div
               key={p.id}
@@ -34,13 +40,13 @@ function TeamColumn({
                 onSelect?.(p);
               }}
               style={{
-                background: slotColor ? slotColor.bg : "#0B0B0B",
+                background: style.bg,
                 padding: "16px",
                 borderRadius: "14px",
                 textAlign: "center",
                 fontWeight: 600,
-                color: slotColor ? slotColor.text : color,
-                border: slotColor ? `1px solid ${slotColor.border}` : "1px solid #111",
+                color: style.text,
+                border: `1px solid ${style.border}`,
                 cursor: "pointer",
                 minHeight: "72px",
                 display: "flex",
@@ -110,6 +116,7 @@ export default function CourtCard({
   onMatchFinished,
   allPlayers = [],
   allOccupiedPlayerIds = null,
+  getAssignedColor = null,
 }) {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [activePlayer, setActivePlayer] = useState(null);
@@ -221,6 +228,13 @@ export default function CourtCard({
               return;
             }
 
+            const assigned = getAssignedColor?.();
+            if (!assigned) {
+              alert("Semua 50 warna sudah dipakai. Keluarkan pemain atau reset court untuk membebaskan warna.");
+              setShowScanner(false);
+              scanTargetRef.current = null;
+              return;
+            }
             setCourtRef.current((prev) => {
               if (prev[target.teamKey].length >= 2) {
                 alert("Tim ini sudah penuh");
@@ -236,7 +250,7 @@ export default function CourtCard({
                     isVIP: snap.data().isVIP || false,
                     photoUrl: snap.data().photoUrl || "",
                     badge: snap.data().badge || null,
-                    slot: SLOT_ORDER[(target.teamKey === "team1" ? 0 : 2) + target.slotIndex],
+                    colorIndex: assigned.colorIndex,
                   },
                 ],
               };
@@ -355,28 +369,31 @@ export default function CourtCard({
       </div>
 
       {!showNoteEditor ? (
-        <div style={{ marginBottom: 14 }}>
-          <button
-            onClick={openNoteEditor}
-            type="button"
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: 12,
-              background: "#0B1F1E",
-              color: "#4FD1C5",
-              border: "1px dashed #4FD1C5",
-              cursor: "pointer",
-            }}
-          >
-            + Keterangan
-          </button>
-          {(court.note ?? "").trim() ? (
-            <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#888", lineHeight: 1.4 }}>
-              {court.note}
-            </p>
-          ) : null}
-        </div>
+        <button
+          onClick={openNoteEditor}
+          type="button"
+          style={{
+            width: "100%",
+            marginBottom: 14,
+            padding: "12px",
+            borderRadius: 12,
+            textAlign: "left",
+            cursor: "pointer",
+            ...((court.note ?? "").trim()
+              ? {
+                  background: "rgba(79, 209, 197, 0.15)",
+                  color: "#9FF5EA",
+                  border: "1px solid #4FD1C5",
+                }
+              : {
+                  background: "#0B1F1E",
+                  color: "#4FD1C5",
+                  border: "1px dashed #4FD1C5",
+                }),
+          }}
+        >
+          {(court.note ?? "").trim() ? court.note : "+ Keterangan"}
+        </button>
       ) : (
         <div style={{ marginBottom: 14, display: "flex", gap: 8, alignItems: "flex-start" }}>
           <input
@@ -484,8 +501,8 @@ export default function CourtCard({
                 if (!movingPlayer) return prev;
                 return {
                   ...prev,
-                  [from]: prev[from].filter((p) => p.id !== movingPlayer.id).map((p, i) => ({ ...p, slot: SLOT_ORDER[(from === "team1" ? 0 : 2) + i] })),
-                  [to]: [...prev[to], movingPlayer].map((p, i) => ({ ...p, slot: SLOT_ORDER[(to === "team1" ? 0 : 2) + i] })),
+                  [from]: prev[from].filter((p) => p.id !== movingPlayer.id),
+                  [to]: [...prev[to], movingPlayer],
                 };
               });
               setActivePlayer(null);
@@ -499,7 +516,7 @@ export default function CourtCard({
               const from = activePlayer.fromTeam;
               setCourt((prev) => ({
                 ...prev,
-                [from]: prev[from].filter((p) => p.id !== activePlayer.player.id).map((p, i) => ({ ...p, slot: SLOT_ORDER[(from === "team1" ? 0 : 2) + i] })),
+                [from]: prev[from].filter((p) => p.id !== activePlayer.player.id),
               }));
               activePlayerIdsRef.current.delete(activePlayer.player.id);
               setActivePlayer(null);
@@ -576,10 +593,16 @@ export default function CourtCard({
                 onClick={() => {
                   const target = slotTargetRef.current;
                   if (!target) return;
+                  const assigned = getAssignedColor?.();
+                  if (!assigned) {
+                    alert("Semua 50 warna sudah dipakai. Keluarkan pemain atau reset court untuk membebaskan warna.");
+                    return;
+                  }
                   setCourt((prev) => ({
                     ...prev,
-                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", isVIP: p.isVIP || false, badge: p.badge || null, slot: SLOT_ORDER[(target.teamKey === "team1" ? 0 : 2) + target.slotIndex] }],
+                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", isVIP: p.isVIP || false, badge: p.badge || null, colorIndex: assigned.colorIndex }],
                   }));
+                  activePlayerIdsRef.current.add(p.id);
                   setShowPlayerPicker(false);
                   slotTargetRef.current = null;
                 }}

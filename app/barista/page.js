@@ -67,25 +67,28 @@ export default function BaristaPage() {
             if (cancelled) return;
             if (processingRef.current) return;
             processingRef.current = true;
+            try {
+              stopScanner();
+            } catch (_) {}
 
             const showError = (msg) => {
-              stopScanner();
-              setMessage(msg);
-              setView("error");
               processingRef.current = false;
+              setTimeout(() => {
+                setMessage(msg);
+                setView("error");
+              }, 0);
             };
             const showSuccess = (player) => {
-              setSuccessPlayer(player);
-              setView("success");
-              try {
-                stopScanner();
-              } catch (_) {}
-              try {
-                if (typeof navigator !== "undefined" && navigator.vibrate) {
-                  navigator.vibrate([100, 50, 100]);
-                }
-              } catch (_) {}
               processingRef.current = false;
+              setTimeout(() => {
+                setSuccessPlayer(player);
+                setView("success");
+                try {
+                  if (typeof navigator !== "undefined" && navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                  }
+                } catch (_) {}
+              }, 0);
             };
 
             try {
