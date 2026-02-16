@@ -895,7 +895,7 @@ export default function RegisterPage() {
                     >
                       {player.name}
                     </div>
-                    {(player.badge === "queen" || player.isVIP) && (
+                    {(player.badge === "queen" || player.badge === "toprank" || player.isVIP) && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                         {player.badge === "queen" && (
                           <span
@@ -915,6 +915,26 @@ export default function RegisterPage() {
                             }}
                           >
                             👑 QUEEN
+                          </span>
+                        )}
+                        {player.badge === "toprank" && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              letterSpacing: "0.08em",
+                              color: "#4FD1C5",
+                              background: "linear-gradient(135deg, rgba(79,209,197,0.35) 0%, rgba(79,209,197,0.15) 100%)",
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              border: "1px solid rgba(79,209,197,0.6)",
+                              boxShadow: "0 0 12px rgba(79,209,197,0.3)",
+                            }}
+                          >
+                            🏆 TOP RANK
                           </span>
                         )}
                         {player.isVIP && (

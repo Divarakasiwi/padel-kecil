@@ -3,7 +3,16 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../../../firebase";
 import { HOST_AUTH_KEY } from "../../lib/dashboard";
+
+function generateCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
 
 const sectionStyle = {
   marginBottom: "24px",
@@ -35,6 +44,10 @@ export default function TurnamenBaruPage() {
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [ketentuanLain, setKetentuanLain] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [createdCode, setCreatedCode] = useState("");
+  const [createdLink, setCreatedLink] = useState("");
   const refTanggalMulai = useRef(null);
   const refTanggalSelesai = useRef(null);
 
@@ -55,8 +68,35 @@ export default function TurnamenBaruPage() {
     setTanggalSelesai((s) => (s === "" ? today : s));
   }, [router]);
 
-  const handleBuatPertandingan = () => {
-    // Selanjutnya akan diisi sesuai instruksi
+  const handleBuatPertandingan = async () => {
+    const nama = (namaTurnamen || "").trim();
+    if (!nama) {
+      setSaveError("Nama turnamen wajib diisi.");
+      return;
+    }
+    setSaveError("");
+    setSaving(true);
+    try {
+      const code = generateCode();
+      await addDoc(collection(db, "tournaments"), {
+        namaTurnamen: nama,
+        jumlahTim: Number(jumlahPemain) || 8,
+        tanggalMulai: tanggalMulai || null,
+        tanggalSelesai: tanggalSelesai || null,
+        ketentuanLain: (ketentuanLain || "").trim() || null,
+        code,
+        teams: [],
+        createdAt: new Date().toISOString(),
+      });
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      setCreatedLink(`${origin}/turnamen/daftar?code=${code}`);
+      setCreatedCode(code);
+    } catch (e) {
+      console.error(e);
+      setSaveError("Gagal menyimpan. Cek koneksi.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!hostChecked) return null;
@@ -103,6 +143,29 @@ export default function TurnamenBaruPage() {
         }}
       />
       <div style={{ position: "relative", zIndex: 1, maxWidth: "560px", margin: "0 auto" }}>
+        <div style={{ marginBottom: "16px" }}>
+          <Link
+            href="/turnamen"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              minHeight: "44px",
+              padding: "12px 20px",
+              background: "rgba(79, 209, 197, 0.12)",
+              border: "1px solid rgba(79, 209, 197, 0.5)",
+              borderRadius: "12px",
+              color: "#9FF5EA",
+              fontSize: "14px",
+              fontWeight: 500,
+              textDecoration: "none",
+              boxSizing: "border-box",
+            }}
+          >
+            Lomba yang sudah dibuat
+          </Link>
+        </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "12px" }}>
           <h1 style={{ margin: 0, fontSize: "22px", color: "#E8FFF9" }}>Ketentuan lomba</h1>
           <Link
@@ -198,10 +261,29 @@ export default function TurnamenBaruPage() {
           </div>
         </section>
 
+        <section style={sectionStyle}>
+          <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>PENDAFTARAN DI MEJA</h2>
+          <p style={{ margin: "0 0 12px", fontSize: "13px", color: "#b8a8a8", lineHeight: 1.5 }}>
+            Semua tim mendaftar di <strong style={{ color: "#E8FFF9" }}>satu meja</strong>. Antri per tim, lalu daftar dengan scan barcode/QR.
+          </p>
+          <ol style={{ margin: 0, paddingLeft: "20px", fontSize: "13px", color: "#b8a8a8", lineHeight: 1.8 }}>
+            <li>Sediakan <strong style={{ color: "#E8FFF9" }}>satu device</strong> di meja (HP/tablet) untuk pendaftaran, atau pajang <strong style={{ color: "#E8FFF9" }}>satu QR/link</strong> yang sama untuk dibuka peserta.</li>
+            <li>Masukkan <strong style={{ color: "#E8FFF9" }}>kode turnamen</strong> (akan muncul setelah lomba dibuat).</li>
+            <li>Per tim: <strong style={{ color: "#E8FFF9" }}>scan QR/barcode pemain 1</strong> → <strong style={{ color: "#E8FFF9" }}>scan pemain 2</strong> → Daftar.</li>
+            <li>Tim berikutnya antri, ulangi langkah 3.</li>
+            <li>Pendaftaran otomatis ditutup setelah <strong style={{ color: "#4FD1C5" }}>{jumlahPemain} tim</strong> terdaftar.</li>
+          </ol>
+          <p style={{ margin: "12px 0 0", fontSize: "12px", color: "#888" }}>
+            Setelah klik &quot;Buat pertandingan&quot;, simpan atau tampilkan <strong>kode turnamen</strong> &amp; link pendaftaran di meja agar panitia/peserta bisa daftar.
+          </p>
+        </section>
+
+        {saveError && <p style={{ color: "#FF6B6B", fontSize: "13px", marginBottom: "12px" }}>{saveError}</p>}
         <div style={{ marginTop: "24px", marginBottom: "32px" }}>
           <button
             type="button"
             onClick={handleBuatPertandingan}
+            disabled={saving}
             style={{
               width: "100%",
               minHeight: "52px",
@@ -212,14 +294,31 @@ export default function TurnamenBaruPage() {
               color: "#E87A7A",
               fontSize: "16px",
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: saving ? "not-allowed" : "pointer",
               letterSpacing: "0.04em",
               boxShadow: "0 0 20px rgba(220, 80, 80, 0.25)",
             }}
           >
-            BUAT PERTANDINGAN
+            {saving ? "Menyimpan..." : "BUAT PERTANDINGAN"}
           </button>
         </div>
+        {createdCode && (
+          <section style={{ ...sectionStyle, borderColor: "#2d6a64", background: "rgba(79,209,197,0.08)" }}>
+            <h2 style={{ margin: "0 0 12px", fontSize: "14px", color: "#4FD1C5", letterSpacing: "0.05em" }}>LOMBA BERHASIL DIBUAT</h2>
+            <p style={{ margin: "0 0 8px", fontSize: "13px", color: "#b8a8a8" }}>Kode turnamen (tampilkan di meja pendaftaran):</p>
+            <p style={{ margin: "0 0 16px", fontSize: "20px", fontWeight: 700, letterSpacing: "0.15em", color: "#9FF5EA" }}>{createdCode}</p>
+            <p style={{ margin: "0 0 8px", fontSize: "13px", color: "#b8a8a8" }}>Link pendaftaran:</p>
+            <Link
+              href={createdLink}
+              style={{ fontSize: "14px", color: "#4FD1C5", wordBreak: "break-all" }}
+            >
+              {createdLink}
+            </Link>
+            <p style={{ margin: "12px 0 0", fontSize: "12px", color: "#888" }}>
+              Buka link ini di device meja pendaftaran, atau bagikan ke peserta. Kode akan terisi otomatis dari link.
+            </p>
+          </section>
+        )}
       </div>
     </main>
   );

@@ -75,6 +75,9 @@ function TeamColumn({
                   {p.badge === "queen" && (
                     <div className="queen-badge" style={{ marginTop: 2 }}>👑 QUEEN</div>
                   )}
+                  {p.badge === "toprank" && (
+                    <div className="queen-badge" style={{ marginTop: 2, borderColor: "#4FD1C5", color: "#4FD1C5" }}>🏆 TOP RANK</div>
+                  )}
                   {p.isVIP && (
                     <div className="vip-badge-slot">⭐ VIP</div>
                   )}

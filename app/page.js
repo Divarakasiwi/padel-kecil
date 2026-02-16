@@ -1,6 +1,6 @@
 "use client";
 
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, doc, getDocs, addDoc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo, useRef } from "react";
@@ -433,6 +433,31 @@ const updateExtraCourtState = (id, updater) => {
       .slice(0, 10);
   }, [allPlayers, pendingMatchesCount]);
 
+  // Sinkronisasi badge "Top Rank" (non-turnamen): hanya #1 hari ini yang dapat
+  const lastSyncedTopRankId = useRef(null);
+  useEffect(() => {
+    if (!allPlayers?.length) return;
+    const topId = topWinnersToday[0]?.id ?? null;
+    if (topId === lastSyncedTopRankId) return;
+    const apply = async () => {
+      try {
+        const toRemove = allPlayers.filter((p) => p.badge === "toprank" && p.id !== topId);
+        for (const p of toRemove) {
+          await updateDoc(doc(db, "players", p.id), { badge: null });
+        }
+        if (topId) {
+          await updateDoc(doc(db, "players", topId), { badge: "toprank" });
+        }
+        lastSyncedTopRankId.current = topId;
+        const snap = await getDocs(collection(db, "players"));
+        setAllPlayers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    apply();
+  }, [topWinnersToday, allPlayers]);
+
   // Top winning teams (hari ini): tim yang menang terbanyak
   const topWinningTeamsToday = useMemo(() => {
     const today = getTodayKey();
@@ -813,6 +838,7 @@ const updateExtraCourtState = (id, updater) => {
               key={p.id}
               left={`${i + 1}. ${p.name}`}
               right={`${p.wins} wins`}
+              badge={i === 0 ? "Top Rank" : undefined}
             />
           ))
         )}

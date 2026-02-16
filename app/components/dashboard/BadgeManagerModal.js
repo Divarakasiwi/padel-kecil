@@ -118,7 +118,23 @@ export default function BadgeManagerModal({ allPlayers, onRefresh, onClose }) {
                       <div style={{ fontSize: "12px", color: "#666" }}>{p.phone}</div>
                     )}
                   </div>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    {p.badge === "toprank" && (
+                      <span
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "999px",
+                          border: "1px solid #4FD1C5",
+                          background: "rgba(79,209,197,0.15)",
+                          color: "#4FD1C5",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                        }}
+                        title="Otomatis untuk #1 hari ini"
+                      >
+                        🏆 Top Rank (otomatis)
+                      </span>
+                    )}
                     <button
                       type="button"
                       disabled={savingId === p.id}
