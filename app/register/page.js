@@ -857,13 +857,16 @@ export default function RegisterPage() {
                         onPointerMove={(e) => {
                           if (!photoDragRef.current.isDragging) return;
                           e.preventDefault();
+                          const el = e.currentTarget;
                           const dx = e.clientX - photoDragRef.current.startX;
                           const dy = e.clientY - photoDragRef.current.startY;
-                          const sens = 0.15;
                           const base = photoDragRef.current.startPos || { x: 50, y: 50 };
+                          // Effort-less: geser 1x lebar lingkaran ≈ 100% posisi
+                          const sensX = el?.clientWidth ? 100 / el.clientWidth : 0.35;
+                          const sensY = el?.clientHeight ? 100 / el.clientHeight : 0.35;
                           setPhotoPreviewPosition({
-                            x: Math.min(100, Math.max(0, base.x + dx * sens)),
-                            y: Math.min(100, Math.max(0, base.y + dy * sens)),
+                            x: Math.min(100, Math.max(0, base.x + dx * sensX)),
+                            y: Math.min(100, Math.max(0, base.y + dy * sensY)),
                           });
                         }}
                         onPointerUp={(e) => {
