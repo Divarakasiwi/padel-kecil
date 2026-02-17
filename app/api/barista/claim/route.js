@@ -8,6 +8,8 @@ import { getTodayKey } from "../../../lib/dashboard";
 import { collection, doc, getDoc, getDocs, query, where, addDoc } from "firebase/firestore";
 import { db } from "../../../../firebase";
 
+export const runtime = "nodejs";
+
 export async function POST(request) {
   try {
     const cookieStore = await cookies();

@@ -4,6 +4,8 @@ import {
   getBaristaCookieName,
 } from "../../../lib/session";
 
+export const runtime = "nodejs";
+
 export async function POST(request) {
   try {
     const body = await request.json();

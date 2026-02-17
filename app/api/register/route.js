@@ -3,6 +3,8 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../../firebase";
 
+export const runtime = "nodejs";
+
 const MAX_NAME_LENGTH = 40;
 
 function normalizeName(value) {
