@@ -7,7 +7,6 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { db } from "../firebase";
 
 import {
-  HOST_AUTH_KEY,
   getTodayKey,
   loadMatchQueue,
   saveMatchQueue,
@@ -74,15 +73,16 @@ export default function Dashboard() {
   const [isSyncingMatches, setIsSyncingMatches] = useState(false);
   const [pendingMatchesCount, setPendingMatchesCount] = useState(0);
 
-  // ====== CEK LOGIN HOST: redirect ke /host jika belum login ======
+  // ====== CEK LOGIN HOST: redirect ke /host jika belum login (cookie dicek di server) ======
   const [hostChecked, setHostChecked] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!sessionStorage.getItem(HOST_AUTH_KEY)) {
-      router.replace("/host");
-      return;
-    }
-    setHostChecked(true);
+    fetch("/api/auth/host/check", { credentials: "include" })
+      .then((r) => {
+        if (!r.ok) router.replace("/host");
+        else setHostChecked(true);
+      })
+      .catch(() => router.replace("/host"));
   }, [router]);
 
   // ====== FUNGSI SYNC MATCH QUEUE KE FIRESTORE ======

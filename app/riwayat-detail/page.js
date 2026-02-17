@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { db } from "../../firebase";
-import { HOST_AUTH_KEY } from "../lib/dashboard";
 
 const MONTHS = "Jan Feb Mar Apr Mei Jun Jul Agt Sep Okt Nov Des".split(" ");
 
@@ -62,11 +61,12 @@ export default function RiwayatDetailPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!sessionStorage.getItem(HOST_AUTH_KEY)) {
-      router.replace("/host");
-      return;
-    }
-    setHostChecked(true);
+    fetch("/api/auth/host/check", { credentials: "include" })
+      .then((r) => {
+        if (!r.ok) router.replace("/host");
+        else setHostChecked(true);
+      })
+      .catch(() => router.replace("/host"));
   }, [router]);
 
   useEffect(() => {

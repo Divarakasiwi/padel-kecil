@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
-import { HOST_AUTH_KEY } from "../../lib/dashboard";
 
 function generateCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -58,14 +57,17 @@ export default function TurnamenBaruPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!sessionStorage.getItem(HOST_AUTH_KEY)) {
-      router.replace("/host");
-      return;
-    }
-    setHostChecked(true);
-    const today = getTodayStr();
-    setTanggalMulai((t) => (t === "" ? today : t));
-    setTanggalSelesai((s) => (s === "" ? today : s));
+    fetch("/api/auth/host/check", { credentials: "include" })
+      .then((r) => {
+        if (!r.ok) router.replace("/host");
+        else {
+          setHostChecked(true);
+          const today = getTodayStr();
+          setTanggalMulai((t) => (t === "" ? today : t));
+          setTanggalSelesai((s) => (s === "" ? today : s));
+        }
+      })
+      .catch(() => router.replace("/host"));
   }, [router]);
 
   const handleBuatPertandingan = async () => {

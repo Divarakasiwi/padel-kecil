@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation";
 import { JetBrains_Mono } from "next/font/google";
 
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "600", "700"] });
-const HOST_AUTH_KEY = "padelkecil:host:auth";
-const hostPin = process.env.NEXT_PUBLIC_HOST_PIN ?? "";
-
 const FULL_TEXT = "Selamat datang para host";
 
 export default function HostLoginPage() {
@@ -41,17 +38,24 @@ export default function HostLoginPage() {
     return () => clearInterval(blink);
   }, [typingDone]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoginError("");
-    if (hostPin !== "" && password !== hostPin) {
-      setLoginError("PIN salah. Hanya host yang boleh masuk.");
-      return;
+    try {
+      const res = await fetch("/api/auth/host", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        router.push("/");
+        return;
+      }
+      setLoginError(data.error || "PIN salah. Hanya host yang boleh masuk.");
+    } catch {
+      setLoginError("Koneksi gagal. Coba lagi.");
     }
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(HOST_AUTH_KEY, "1");
-    }
-    router.push("/");
   };
 
   return (
@@ -194,12 +198,12 @@ export default function HostLoginPage() {
                 textTransform: "uppercase",
               }}
             >
-              {hostPin ? "PIN host" : "Password"}
+              PIN host
             </label>
             <input
               type="password"
               value={password}
-              placeholder={hostPin ? "Masukkan PIN host" : "Masukkan password"}
+              placeholder="Masukkan PIN host"
               onChange={(e) => setPassword(e.target.value)}
               style={{
                 width: "100%",

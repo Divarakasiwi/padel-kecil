@@ -2,23 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs,
-  query,
-  where,
-  addDoc,
-} from "firebase/firestore";
-import { db } from "../../firebase";
-import { getTodayKey } from "../lib/dashboard";
-
 const RATE_LIMIT_MS = 7000;
 const AUTO_RESET_MS = 10000;
-const BARISTA_PIN_KEY = "padelkecil:barista:unlocked";
-
-const baristaPin = process.env.NEXT_PUBLIC_BARISTA_PIN ?? "";
 
 export default function BaristaPage() {
   const [unlocked, setUnlocked] = useState(false);
@@ -34,20 +19,28 @@ export default function BaristaPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const saved = sessionStorage.getItem(BARISTA_PIN_KEY);
-    if (saved === "1") setUnlocked(true);
+    fetch("/api/auth/barista/check", { credentials: "include" })
+      .then((r) => r.ok && setUnlocked(true));
   }, []);
 
-  const handlePinSubmit = (e) => {
+  const handlePinSubmit = async (e) => {
     e.preventDefault();
     setPinError("");
-    const ok = baristaPin === "" ? true : pinInput === baristaPin;
-    if (ok) {
-      sessionStorage.setItem(BARISTA_PIN_KEY, "1");
-      setUnlocked(true);
-      setPinInput("");
-    } else {
-      setPinError("PIN salah.");
+    try {
+      const res = await fetch("/api/auth/barista", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pinInput }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        setUnlocked(true);
+        setPinInput("");
+      } else {
+        setPinError(data.error || "PIN salah.");
+      }
+    } catch {
+      setPinError("Koneksi gagal. Coba lagi.");
     }
   };
 
@@ -124,56 +117,23 @@ export default function BaristaPage() {
               }
 
               try {
-                const playerSnap = await getDoc(doc(db, "players", playerId));
-                if (!playerSnap.exists()) {
-                  showError("Pemain tidak ditemukan.");
-                  return;
-                }
-                const playerData = playerSnap.data();
-                const today = getTodayKey();
-
-                const matchesSnap = await getDocs(
-                  query(
-                    collection(db, "matches"),
-                    where("dayKey", "==", today)
-                  )
-                );
-                let playedToday = false;
-                matchesSnap.docs.forEach((d) => {
-                  const data = d.data();
-                  const t1 = data.team1PlayerIds || [];
-                  const t2 = data.team2PlayerIds || [];
-                  if (t1.includes(playerId) || t2.includes(playerId)) playedToday = true;
+                const res = await fetch("/api/barista/claim", {
+                  method: "POST",
+                  credentials: "include",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ playerId }),
                 });
-                if (!playedToday) {
-                  showError("Belum bermain hari ini.");
-                  return;
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.ok && data.player) {
+                  lastClaimTimeRef.current = Date.now();
+                  showSuccess({
+                    name: data.player.name,
+                    photoUrl: data.player.photoUrl || "",
+                    photoThumbnail: data.player.photoThumbnail || "",
+                  });
+                } else {
+                  showError(data.error || "Koneksi gagal, coba lagi.");
                 }
-
-                const claimsSnap = await getDocs(
-                  query(
-                    collection(db, "drinkClaims"),
-                    where("dayKey", "==", today),
-                    where("playerId", "==", playerId)
-                  )
-                );
-                if (!claimsSnap.empty) {
-                  showError("Sudah pernah dapat minuman hari ini.");
-                  return;
-                }
-
-                await addDoc(collection(db, "drinkClaims"), {
-                  playerId,
-                  playerName: playerData.name || playerId,
-                  dayKey: today,
-                  claimedAt: new Date().toISOString(),
-                });
-                lastClaimTimeRef.current = Date.now();
-                showSuccess({
-                  name: playerData.name || playerId,
-                  photoUrl: playerData.photoUrl || "",
-                  photoThumbnail: playerData.photoThumbnail || "",
-                });
               } catch (err) {
                 showError("Koneksi gagal, coba lagi.");
               }
