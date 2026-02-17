@@ -472,8 +472,8 @@ export default function RegisterPage() {
     }
     submitTimestampsRef.current.push(now);
 
-    const codeTrim = code.trim();
-    const codeValid = codeTrim.length === 6;
+    const codeTrim = code.replace(/\D/g, "").trim();
+    const codeValid = /^\d{6}$/.test(codeTrim);
     const normalizedName = normalizeName(name);
     const nameValid = !!normalizedName && normalizedName.length <= MAX_NAME_LENGTH;
     const digitsOnly = phone.replace(/\D/g, "");
@@ -713,12 +713,15 @@ export default function RegisterPage() {
                 <input
                   value={code}
                   onChange={(e) => {
-                    setCode(e.target.value);
+                    const v = String(e.target.value || "").replace(/\D/g, "").slice(0, 6);
+                    setCode(v);
                     if (fieldErrors.code) setFieldErrors((p) => ({ ...p, code: "" }));
                   }}
                   placeholder="Masukkan kode dari host"
                   style={{ ...inputStyle, borderColor: fieldErrors.code ? "#F56565" : undefined }}
                   maxLength={6}
+                  inputMode="numeric"
+                  pattern="\d{6}"
                 />
                 {fieldErrors.code && (
                   <div style={{ fontSize: 11, color: "#FEB2B2", marginTop: 4 }}>{fieldErrors.code}</div>
@@ -848,6 +851,7 @@ export default function RegisterPage() {
                             isDragging: true,
                             startX: e.clientX,
                             startY: e.clientY,
+                            startPos: { ...photoPreviewPosition },
                           };
                         }}
                         onPointerMove={(e) => {
@@ -855,13 +859,12 @@ export default function RegisterPage() {
                           e.preventDefault();
                           const dx = e.clientX - photoDragRef.current.startX;
                           const dy = e.clientY - photoDragRef.current.startY;
-                          photoDragRef.current.startX = e.clientX;
-                          photoDragRef.current.startY = e.clientY;
                           const sens = 0.15;
-                          setPhotoPreviewPosition((prev) => ({
-                            x: Math.min(100, Math.max(0, prev.x + dx * sens)),
-                            y: Math.min(100, Math.max(0, prev.y + dy * sens)),
-                          }));
+                          const base = photoDragRef.current.startPos || { x: 50, y: 50 };
+                          setPhotoPreviewPosition({
+                            x: Math.min(100, Math.max(0, base.x + dx * sens)),
+                            y: Math.min(100, Math.max(0, base.y + dy * sens)),
+                          });
                         }}
                         onPointerUp={(e) => {
                           e.currentTarget.releasePointerCapture(e.pointerId);

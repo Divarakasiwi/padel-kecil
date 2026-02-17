@@ -12,7 +12,6 @@ export default function HostLoginPage() {
   const [displayText, setDisplayText] = useState("");
   const [cursorVisible, setCursorVisible] = useState(true);
   const [typingDone, setTypingDone] = useState(false);
-  const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
@@ -156,37 +155,6 @@ export default function HostLoginPage() {
             boxShadow: "0 0 30px rgba(0, 255, 255, 0.1), inset 0 0 40px rgba(0, 0, 0, 0.3)",
           }}
         >
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "11px",
-                letterSpacing: "0.2em",
-                color: "#00E5FF",
-                marginBottom: "8px",
-                textTransform: "uppercase",
-              }}
-            >
-              ID
-            </label>
-            <input
-              type="text"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              placeholder="Masukkan ID"
-              style={{
-                width: "100%",
-                padding: "14px 16px",
-                borderRadius: "10px",
-                border: "1px solid rgba(0, 255, 255, 0.3)",
-                background: "rgba(0, 20, 30, 0.8)",
-                color: "#E0F7FA",
-                fontSize: "14px",
-                outline: "none",
-                boxShadow: "0 0 12px rgba(0, 255, 255, 0.08)",
-              }}
-            />
-          </div>
           <div style={{ marginBottom: "24px" }}>
             <label
               style={{

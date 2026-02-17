@@ -14,12 +14,16 @@ export async function POST(request) {
     const body = await request.json();
     const { code, name, phone, photoBase64, photoThumbnail, photoCard } = body;
 
-    const serverCode = process.env.REGISTER_CODE || "";
-    const codeValid =
-      typeof code === "string" &&
-      code.trim().length === 6 &&
-      serverCode.length === 6 &&
-      code.trim() === serverCode;
+    const serverCode = String(process.env.REGISTER_CODE || "").trim();
+    if (!/^\d{6}$/.test(serverCode)) {
+      return NextResponse.json(
+        { error: "REGISTER_CODE belum dikonfigurasi dengan benar di server." },
+        { status: 500 }
+      );
+    }
+
+    const clientCode = String(code ?? "").trim();
+    const codeValid = /^\d{6}$/.test(clientCode) && clientCode === serverCode;
 
     if (!codeValid) {
       return NextResponse.json(
