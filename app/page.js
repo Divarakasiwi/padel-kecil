@@ -24,7 +24,7 @@ import CourtCard from "./components/dashboard/CourtCard";
 import InfoCard from "./components/dashboard/InfoCard";
 import InfoRow from "./components/dashboard/InfoRow";
 
-export default function Dashboard() {
+export function Dashboard() {
   const router = useRouter();
   const [now, setNow] = useState(new Date());
   /* =====================
@@ -977,6 +977,225 @@ const updateExtraCourtState = (id, updater) => {
         ?
       </Link>
     </div>
+  );
+}
+
+export default function LandingPage() {
+  const [playerExpanded, setPlayerExpanded] = useState(false);
+  const router = useRouter();
+
+  return (
+    <main
+      style={{
+        minHeight: "calc(100vh - 120px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        background:
+          "radial-gradient(circle at top, rgba(79,209,197,0.2), transparent 55%), #050608",
+      }}
+    >
+      <div className="landing-choice-grid">
+        <div
+          onClick={() => setPlayerExpanded((v) => !v)}
+          style={{
+            borderRadius: "20px",
+            padding: "24px 22px",
+            background:
+              "linear-gradient(145deg, rgba(15, 32, 40, 0.9), rgba(8, 20, 26, 0.9))",
+            border: "1px solid rgba(79,209,197,0.7)",
+            boxShadow:
+              "0 0 25px rgba(79,209,197,0.45), 0 0 60px rgba(79,209,197,0.25)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            color: "#E8FFF9",
+            cursor: "pointer",
+            transition: "transform 0.25s ease, box-shadow 0.25s ease",
+            transform: playerExpanded ? "rotateY(4deg) translateY(-2px)" : "none",
+          }}
+        >
+          {!playerExpanded ? (
+            <>
+              <div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    letterSpacing: "0.22em",
+                    textTransform: "uppercase",
+                    color: "#9FF5EA",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Untuk pemain
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Pemain
+                </div>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#BEE3F8",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Tap kartu ini untuk pilih antara registrasi pemain baru atau
+                  login dengan QR.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    letterSpacing: "0.22em",
+                    textTransform: "uppercase",
+                    color: "#9FF5EA",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Pemain
+                </div>
+                <div
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    letterSpacing: "0.09em",
+                    textTransform: "uppercase",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Pilih aksi
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: "6px",
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  width: "100%",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push("/register");
+                  }}
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    padding: "12px 14px",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(129, 230, 217, 0.9)",
+                    background: "rgba(15, 118, 110, 0.9)",
+                    color: "#E6FFFA",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}
+                >
+                  Regist
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push("/pemain/login");
+                  }}
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    padding: "12px 14px",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(56, 189, 248, 0.85)",
+                    background: "rgba(15, 24, 40, 0.95)",
+                    color: "#E0F2FE",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}
+                >
+                  Login
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        <Link
+          href="/host"
+          style={{
+            textDecoration: "none",
+            borderRadius: "20px",
+            padding: "24px 22px",
+            background:
+              "linear-gradient(145deg, rgba(24, 16, 40, 0.95), rgba(12, 10, 24, 0.95))",
+            border: "1px solid rgba(236, 72, 153, 0.8)",
+            boxShadow:
+              "0 0 25px rgba(236, 72, 153, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            color: "#FEF3F7",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "13px",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "#FBB6CE",
+                marginBottom: "10px",
+              }}
+            >
+              Untuk host
+            </div>
+            <div
+              style={{
+                fontSize: "22px",
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                marginBottom: "8px",
+              }}
+            >
+              Host
+            </div>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#FED7E2",
+                lineHeight: 1.6,
+              }}
+            >
+              Masuk dengan PIN host untuk mengatur court, pertandingan, dan
+              turnamen PADEL KECIL.
+            </p>
+          </div>
+          {/* Tidak perlu chip tambahan, cukup klik kartu untuk masuk ke /host */}
+        </Link>
+      </div>
+    </main>
   );
 }
 

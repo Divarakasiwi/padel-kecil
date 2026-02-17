@@ -111,3 +111,18 @@ html {
 .court-scroll::-webkit-scrollbar {
   display: none;
 }
+
+/* ===== Landing (/) pilihan Pemain / Host ===== */
+.landing-choice-grid {
+  width: 100%;
+  max-width: 720px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr; /* HP: atas-bawah */
+}
+
+@media (min-width: 640px) {
+  .landing-choice-grid {
+    grid-template-columns: 1fr 1fr; /* Tablet/Laptop: kiri-kanan */
+  }
+}

@@ -48,7 +48,7 @@ export default function HostLoginPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
-        router.push("/");
+        router.push("/host/dashboard");
         return;
       }
       setLoginError(data.error || "PIN salah. Hanya host yang boleh masuk.");
