@@ -1,9 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../firebase";
+import { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
@@ -39,12 +36,8 @@ const secondaryButtonStyle = {
   cursor: "pointer",
 };
 
-const REGISTER_CODE =
-  process.env.NEXT_PUBLIC_REGISTER_CODE && process.env.NEXT_PUBLIC_REGISTER_CODE.length === 6
-    ? process.env.NEXT_PUBLIC_REGISTER_CODE
-    : "123456"; // ganti via env di produksi
-
-// Foto wajah di-upload ke Firebase Storage (bucket) dan URL disimpan di Firestore. Aktifkan agar pemain bisa isi foto.
+// Kode register dicek di server (API), tidak ada di client sehingga user tidak bisa melihatnya.
+// Foto wajah di-upload via API ke Firebase Storage; thumbnail/kartu disimpan di Firestore.
 const HIDE_PHOTO_UPLOAD = false;
 
 const MAX_NAME_LENGTH = 40;
@@ -131,6 +124,52 @@ async function createPhotoDataUrl(file, size, quality = 0.6) {
   });
 }
 
+/** Crop gambar sesuai posisi yang user pilih di preview (object-position %, sama seperti CSS). */
+async function cropImageByPosition(file, posPercent, size = 400) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+      const scale = Math.max(size / iw, size / ih);
+      const scaledW = iw * scale;
+      const scaledH = ih * scale;
+      const centerViewX = size / 2;
+      const centerViewY = size / 2;
+      const centerImgX = (posPercent.x / 100) * scaledW;
+      const centerImgY = (posPercent.y / 100) * scaledH;
+      const srcW = size / scale;
+      const srcH = size / scale;
+      let srcX = (centerImgX - centerViewX) / scale;
+      let srcY = (centerImgY - centerViewY) / scale;
+      srcX = Math.max(0, Math.min(iw - srcW, srcX));
+      srcY = Math.max(0, Math.min(ih - srcH, srcY));
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, size, size);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        0.85
+      );
+    };
+    img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 function createQrUrl(playerId) {
   const data = encodeURIComponent(playerId);
   return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${data}&color=000000&bgcolor=FFFFFF`;
@@ -142,6 +181,26 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
+  const [photoPreviewPosition, setPhotoPreviewPosition] = useState({ x: 50, y: 50 });
+  const photoDragRef = useRef({ isDragging: false, startX: 0, startY: 0, startPos: { x: 50, y: 50 } });
+  const [showCamera, setShowCamera] = useState(false);
+  const cameraVideoRef = useRef(null);
+  const cameraStreamRef = useRef(null);
+
+  useEffect(() => {
+    if (showCamera && cameraVideoRef.current && cameraStreamRef.current) {
+      cameraVideoRef.current.srcObject = cameraStreamRef.current;
+    }
+  }, [showCamera]);
+
+  useEffect(() => {
+    return () => {
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach((t) => t.stop());
+        cameraStreamRef.current = null;
+      }
+    };
+  }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({ code: "", name: "", phone: "" });
@@ -316,6 +375,55 @@ export default function RegisterPage() {
     }
   };
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: false,
+      });
+      cameraStreamRef.current = stream;
+      setShowCamera(true);
+      setTimeout(() => {
+        if (cameraVideoRef.current) cameraVideoRef.current.srcObject = stream;
+      }, 0);
+    } catch (err) {
+      console.error(err);
+      setError("Tidak bisa akses kamera. Izinkan kamera di pengaturan browser atau pilih dari galeri.");
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStreamRef.current) {
+      cameraStreamRef.current.getTracks().forEach((t) => t.stop());
+      cameraStreamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const captureFromCamera = () => {
+    const video = cameraVideoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const file = new File([blob], "camera.jpg", { type: "image/jpeg" });
+        setPhotoFile(file);
+        setPhotoPreviewPosition({ x: 50, y: 50 });
+        setPhotoPreview(URL.createObjectURL(file));
+        setError("");
+        stopCamera();
+      },
+      "image/jpeg",
+      0.88
+    );
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -325,8 +433,10 @@ export default function RegisterPage() {
     }
     setError("");
     setPhotoFile(file);
+    setPhotoPreviewPosition({ x: 50, y: 50 });
     const url = URL.createObjectURL(file);
     setPhotoPreview(url);
+    e.target.value = "";
   };
 
   const handleDaftarLagi = () => {
@@ -339,6 +449,7 @@ export default function RegisterPage() {
     setFieldErrors({ code: "", name: "", phone: "" });
     setPhotoFile(null);
     setPhotoPreview("");
+    setPhotoPreviewPosition({ x: 50, y: 50 });
   };
 
   const handleSubmit = async (e) => {
@@ -362,14 +473,14 @@ export default function RegisterPage() {
     submitTimestampsRef.current.push(now);
 
     const codeTrim = code.trim();
-    const codeValid = codeTrim.length === 6 && codeTrim === REGISTER_CODE;
+    const codeValid = codeTrim.length === 6;
     const normalizedName = normalizeName(name);
     const nameValid = !!normalizedName && normalizedName.length <= MAX_NAME_LENGTH;
     const digitsOnly = phone.replace(/\D/g, "");
     const phoneValid = digitsOnly.length >= 10 && digitsOnly.length <= 12;
 
     if (!codeValid) {
-      setFieldErrors((prev) => ({ ...prev, code: "Kode harus 6 digit dan benar." }));
+      setFieldErrors((prev) => ({ ...prev, code: "Kode harus 6 digit." }));
     }
     if (!nameValid) {
       setFieldErrors((prev) => ({
@@ -393,60 +504,69 @@ export default function RegisterPage() {
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
+    setError("");
 
-      let photoUrl = "";
+    const fileToBase64 = (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+    const timeout = (ms) =>
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms));
+
+    const doSave = async () => {
+      let photoBase64 = "";
       let photoThumbnail = "";
       let photoCard = "";
       if (!HIDE_PHOTO_UPLOAD && photoFile) {
-        // compress image jika besar
         let fileToUpload = photoFile;
-        if (photoFile.size > 3 * 1024 * 1024) {
-          fileToUpload = await compressImage(photoFile);
+        if (photoPreviewPosition.x !== 50 || photoPreviewPosition.y !== 50) {
+          fileToUpload = await cropImageByPosition(photoFile, photoPreviewPosition, 400);
         }
-        // upload ke Storage (untuk arsip)
-        const storageRef = ref(
-          storage,
-          `players/${Date.now()}_${fileToUpload.name.replace(/\s+/g, "_")}`
-        );
-        const snapshot = await uploadBytes(storageRef, fileToUpload);
-        photoUrl = await getDownloadURL(snapshot.ref);
-        // thumbnail kecil: court/barista (tanpa download Storage)
+        if (fileToUpload.size > 3 * 1024 * 1024) {
+          fileToUpload = await compressImage(fileToUpload);
+        }
+        photoBase64 = await fileToBase64(fileToUpload);
         photoThumbnail = await createPhotoDataUrl(fileToUpload, 64, 0.6);
-        // ukuran kartu: tampilan bagus di kartu pemain tanpa download Storage
         photoCard = await createPhotoDataUrl(fileToUpload, 280, 0.78);
       }
 
-      // simpan ke Firestore
-      const docRef = await addDoc(collection(db, "players"), {
-        name: normalizedName,
-        phone: phone.replace(/\D/g, ""),
-        photoUrl,
-        photoThumbnail,
-        photoCard,
-        badge: null,
-        isVIP: false,
-        status: "active",
-        createdAt: serverTimestamp(),
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: codeTrim,
+          name: normalizedName,
+          phone: phone.replace(/\D/g, ""),
+          photoBase64,
+          photoThumbnail,
+          photoCard,
+        }),
       });
+      const data = await res.json();
 
-      const playerId = docRef.id;
-      const qr = createQrUrl(playerId);
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal mendaftar.");
+      }
 
-      setPlayer({
-        id: playerId,
-        name: normalizedName,
-        photoUrl,
-        photoThumbnail,
-        photoCard,
-        badge: null,
-        isVIP: false,
-      });
-      setQrUrl(qr);
+      const { playerId, player: playerData } = data;
+      setQrUrl(createQrUrl(playerId));
+      setPlayer(playerData);
+    };
+
+    try {
+      await Promise.race([doSave(), timeout(45000)]);
     } catch (e) {
       console.error(e);
-      setError("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
+      setError(
+        e?.message === "Timeout"
+          ? "Koneksi terlalu lama. Cek internet atau coba lagi."
+          : e?.message || "Terjadi kesalahan saat menyimpan data. Silakan coba lagi."
+      );
     } finally {
       setLoading(false);
     }
@@ -466,6 +586,79 @@ export default function RegisterPage() {
         padding: "max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left))",
       }}
     >
+      {showCamera && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.9)",
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <p style={{ color: "#fff", marginBottom: 16, fontSize: 14 }}>Arahkan wajah ke kamera, lalu jepret</p>
+          <div
+            style={{
+              width: "min(320px, 100vw - 48px)",
+              aspectRatio: "1",
+              borderRadius: "999px",
+              overflow: "hidden",
+              border: "3px solid #4FD1C5",
+              background: "#000",
+            }}
+          >
+            <video
+              ref={cameraVideoRef}
+              autoPlay
+              playsInline
+              muted
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: "scaleX(-1)",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+            <button
+              type="button"
+              onClick={captureFromCamera}
+              style={{
+                padding: "14px 28px",
+                background: "#4FD1C5",
+                color: "#0B0B0B",
+                border: "none",
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Jepret
+            </button>
+            <button
+              type="button"
+              onClick={stopCamera}
+              style={{
+                padding: "14px 28px",
+                background: "transparent",
+                color: "#9FF5EA",
+                border: "1px solid #4FD1C5",
+                borderRadius: 12,
+                fontSize: 16,
+                cursor: "pointer",
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
       <div
         style={{
           width: "100%",
@@ -605,48 +798,34 @@ export default function RegisterPage() {
                     style={{
                       marginTop: "8px",
                       display: "flex",
-                      gap: 12,
+                      flexWrap: "wrap",
+                      gap: 10,
                       alignItems: "center",
                     }}
                   >
+                    <button type="button" style={secondaryButtonStyle} onClick={startCamera}>
+                      Ambil foto (kamera)
+                    </button>
                     <button
                       type="button"
                       style={secondaryButtonStyle}
-                      onClick={() => {
-                        const input = document.getElementById("photo-input");
-                        if (input) {
-                          input.click();
-                        }
-                      }}
+                      onClick={() => document.getElementById("photo-input-gallery")?.click()}
                     >
-                      Ambil foto / pilih dari galeri
+                      Pilih dari galeri
                     </button>
                     <input
-                      id="photo-input"
+                      id="photo-input-gallery"
                       type="file"
                       accept="image/*"
-                      capture="user"
                       onChange={handleFileChange}
                       style={{ display: "none" }}
                     />
                   </div>
-                  <p
-                    style={{
-                      marginTop: 6,
-                      fontSize: 11,
-                      color: "#718096",
-                    }}
-                  >
-                    Gunakan kamera depan, pastikan wajah menghadap kamera dan terang.
+                  <p style={{ marginTop: 6, fontSize: 11, color: "#718096" }}>
+                    Setelah pilih foto, geser gambar agar wajah di tengah lingkaran.
                   </p>
                   {photoPreview && (
-                    <div
-                      style={{
-                        marginTop: 12,
-                        display: "flex",
-                        justifyContent: "center",
-                      }}
-                    >
+                    <div style={{ marginTop: 12, display: "flex", justifyContent: "center" }}>
                       <div
                         style={{
                           width: 180,
@@ -656,18 +835,53 @@ export default function RegisterPage() {
                           boxShadow: "0 0 18px rgba(79,209,197,0.6)",
                           overflow: "hidden",
                           position: "relative",
-                          background:
-                            "radial-gradient(circle at 30% 20%, #4FD1C5 0, transparent 55%)",
+                          cursor: "grab",
+                          userSelect: "none",
+                          touchAction: "none",
+                          background: "radial-gradient(circle at 30% 20%, #4FD1C5 0, transparent 55%)",
+                        }}
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          const el = e.currentTarget;
+                          el.setPointerCapture(e.pointerId);
+                          photoDragRef.current = {
+                            isDragging: true,
+                            startX: e.clientX,
+                            startY: e.clientY,
+                          };
+                        }}
+                        onPointerMove={(e) => {
+                          if (!photoDragRef.current.isDragging) return;
+                          e.preventDefault();
+                          const dx = e.clientX - photoDragRef.current.startX;
+                          const dy = e.clientY - photoDragRef.current.startY;
+                          photoDragRef.current.startX = e.clientX;
+                          photoDragRef.current.startY = e.clientY;
+                          const sens = 0.15;
+                          setPhotoPreviewPosition((prev) => ({
+                            x: Math.min(100, Math.max(0, prev.x + dx * sens)),
+                            y: Math.min(100, Math.max(0, prev.y + dy * sens)),
+                          }));
+                        }}
+                        onPointerUp={(e) => {
+                          e.currentTarget.releasePointerCapture(e.pointerId);
+                          photoDragRef.current.isDragging = false;
+                        }}
+                        onPointerCancel={(e) => {
+                          if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+                          photoDragRef.current.isDragging = false;
                         }}
                       >
                         <img
                           src={photoPreview}
                           alt="Preview"
+                          draggable={false}
                           style={{
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
-                            objectPosition: "center",
+                            objectPosition: `${photoPreviewPosition.x}% ${photoPreviewPosition.y}%`,
+                            pointerEvents: "none",
                           }}
                         />
                       </div>
