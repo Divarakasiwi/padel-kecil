@@ -1060,23 +1060,6 @@ export default function RegisterPage() {
                     boxShadow: "0 0 10px rgba(79,209,197,0.3)",
                   }}
                 />
-                {/* Garis lengkung glow kanan bawah (referensi) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    right: -20,
-                    bottom: -10,
-                    width: "55%",
-                    height: 80,
-                    borderRadius: "50%",
-                    border: "1px solid rgba(79,209,197,0.25)",
-                    borderBottomColor: "transparent",
-                    borderLeftColor: "transparent",
-                    boxShadow: "0 0 32px rgba(79,209,197,0.35), 0 0 56px rgba(79,209,197,0.2)",
-                    transform: "rotate(25deg)",
-                    pointerEvents: "none",
-                  }}
-                />
 
                 {/* Pola titik halus kanan (tekstur padel) */}
                 <div
@@ -1093,39 +1076,7 @@ export default function RegisterPage() {
                   }}
                 />
 
-                {/* Siluet raket kanan — setengah hilang (gradient mask) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "55%",
-                    height: "85%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    pointerEvents: "none",
-                    zIndex: 0,
-                  }}
-                >
-                  <img
-                    src="/logoutama.png"
-                    alt=""
-                    style={{
-                      height: "100%",
-                      width: "auto",
-                      maxWidth: "100%",
-                      objectFit: "contain",
-                      objectPosition: "right center",
-                      opacity: 0.22,
-                      maskImage: "linear-gradient(to right, transparent 0%, black 45%)",
-                      WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 45%)",
-                    }}
-                  />
-                </div>
-
-                {/* Top row: logo + teks Padel Kecil (teal) | MEMBER SINCE 2026 */}
+                {/* Top row: logo saja (tanpa teks) | MEMBER SINCE */}
                 <div
                   style={{
                     display: "flex",
@@ -1136,22 +1087,12 @@ export default function RegisterPage() {
                     zIndex: 1,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
                     <img
                       src="/logoutama.png"
-                      alt=""
+                      alt="Padel Kecil"
                       style={{ height: 52, width: "auto", objectFit: "contain" }}
                     />
-                    <span
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        letterSpacing: "0.06em",
-                        color: "#4FD1C5",
-                      }}
-                    >
-                      Padel Kecil
-                    </span>
                   </div>
                   <span
                     style={{
