@@ -1,4 +1,5 @@
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,30 +37,40 @@ export default function RootLayout({ children }) {
             textAlign: "center",
           }}
         >
-          <div
+          <Link
+            href="/"
             style={{
-              fontSize: "clamp(26px, 6vw, 36px)",
-              fontWeight: 700,
-              letterSpacing: "0.2em",
-              color: "#E8FFF9",
-              textShadow: "0 0 12px rgba(79,209,197,0.5), 0 0 24px rgba(79,209,197,0.25)",
-              lineHeight: 1.2,
+              textDecoration: "none",
+              color: "inherit",
+              cursor: "pointer",
             }}
+            aria-label="Kembali ke beranda"
           >
-            Padel Kecil
-          </div>
-          <div
-            style={{
-              marginTop: "6px",
-              fontSize: "clamp(13px, 2.5vw, 16px)",
-              fontWeight: 400,
-              letterSpacing: "0.35em",
-              color: "#9FF5EA",
-              opacity: 0.9,
-            }}
-          >
-            by Fery
-          </div>
+            <div
+              style={{
+                fontSize: "clamp(26px, 6vw, 36px)",
+                fontWeight: 700,
+                letterSpacing: "0.2em",
+                color: "#E8FFF9",
+                textShadow: "0 0 12px rgba(79,209,197,0.5), 0 0 24px rgba(79,209,197,0.25)",
+                lineHeight: 1.2,
+              }}
+            >
+              Padel Kecil
+            </div>
+            <div
+              style={{
+                marginTop: "6px",
+                fontSize: "clamp(13px, 2.5vw, 16px)",
+                fontWeight: 400,
+                letterSpacing: "0.35em",
+                color: "#9FF5EA",
+                opacity: 0.9,
+              }}
+            >
+              by Fery
+            </div>
+          </Link>
           <div
             style={{
               marginTop: "16px",

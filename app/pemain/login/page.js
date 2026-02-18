@@ -29,6 +29,7 @@ function parsePlayerIdFromQr(decodedText) {
 export default function PemainLoginPage() {
   const router = useRouter();
   const scannerRef = useRef(null);
+  const streamRef = useRef(null); // simpan stream kamera supaya bisa di-stop pas unmount
   const containerId = "pemain-qr-reader";
   const processingRef = useRef(false);
   const [status, setStatus] = useState("scan"); // scan | loading | error
@@ -83,24 +84,67 @@ export default function PemainLoginPage() {
     if (existing) router.replace("/pemain");
   }, [router]);
 
+  // Stop kamera pas halaman ditutup / pindah (unmount). Urutan: stop scanner dulu
+  // (biar library bersihkan video/stream), baru kosongkan container. Jangan stop
+  // stream manual sebelum scanner.stop() selesai — itu memicu onabort() di library.
+  const stopAllSafe = async () => {
+    const s = scannerRef.current;
+    const stream = streamRef.current;
+    scannerRef.current = null;
+    streamRef.current = null;
+
+    if (s) {
+      try {
+        const p = s.stop();
+        if (p && typeof p.then === "function") await p;
+      } catch (_) {}
+      try {
+        s.clear();
+      } catch (_) {}
+    }
+
+    // Kosongkan container setelah scanner beres (hindari video surface onabort)
+    try {
+      const el = typeof document !== "undefined" ? document.getElementById(containerId) : null;
+      if (el) el.innerHTML = "";
+    } catch (_) {}
+
+    // Stop stream sisa hanya kalau tadi tidak ada scanner (stream orphan)
+    if (!s && stream && stream.getTracks) {
+      try {
+        stream.getTracks().forEach((t) => t.stop());
+      } catch (_) {}
+    }
+  };
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") stopAllSafe();
+    };
+    const onPageHide = () => stopAllSafe();
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onPageHide);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
+      stopAllSafe();
+    };
+  }, []);
+
   useEffect(() => {
     if (status !== "scan") return;
     let cancelled = false;
 
     const stopScanner = async () => {
-      const s = scannerRef.current;
-      scannerRef.current = null;
-      if (!s) return;
-      try {
-        await s.stop();
-      } catch {}
-      try {
-        await s.clear();
-      } catch {}
+      await stopAllSafe();
     };
 
     const start = async () => {
       try {
+        await stopAllSafe();
+        const container = document.getElementById(containerId);
+        if (container) container.innerHTML = "";
         if (!scannerRef.current) scannerRef.current = new Html5Qrcode(containerId);
         await scannerRef.current.start(
           { facingMode: "environment" },
@@ -110,15 +154,29 @@ export default function PemainLoginPage() {
             if (processingRef.current) return;
             processingRef.current = true;
             setStatus("loading");
-
-            try {
-              await stopScanner();
-            } catch {}
-
+            // Jangan panggil stopScanner() di sini — library bisa lempar
+            // "Cannot transition to a new state, already under transition".
+            // Pembersihan akan jalan saat unmount/navigate (router.replace).
             await handleDecodedText(decodedText);
           }
         );
+        // Simpan stream kamera supaya bisa di-stop pas back/unmount
+        setTimeout(() => {
+          try {
+            const el = document.getElementById(containerId);
+            const video = el?.querySelector("video");
+            if (video?.srcObject) streamRef.current = video.srcObject;
+          } catch (_) {}
+        }, 300);
       } catch (e) {
+        const msg = String(e || "");
+        // Error dari html5-qrcode saat dev/StrictMode:
+        // "Cannot transition to a new state, already under transition"
+        // Itu race internal library, biasanya aman diabaikan karena
+        // mount kedua akan berhasil. Jadi jangan tampilkan error besar.
+        if (msg.includes("Cannot transition to a new state, already under transition")) {
+          return;
+        }
         console.error(e);
         setMessage("Scanner tidak bisa dijalankan. Izinkan akses kamera.");
         setStatus("error");
@@ -148,10 +206,9 @@ export default function PemainLoginPage() {
     processingRef.current = true;
 
     try {
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode(containerId);
-      }
-      const decodedText = await scannerRef.current.scanFile(file, false);
+      await stopAllSafe();
+      const fileScanner = new Html5Qrcode(containerId);
+      const decodedText = await fileScanner.scanFile(file, false);
       await handleDecodedText(decodedText, { fromFile: true });
     } catch (err) {
       console.error(err);
