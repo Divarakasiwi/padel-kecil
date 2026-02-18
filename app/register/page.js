@@ -1079,6 +1079,21 @@ export default function RegisterPage() {
                   }}
                 />
 
+                {/* Logo komunitas di pojok kiri atas */}
+                <img
+                  src="/logoutama.png"
+                  alt="Padel Kecil"
+                  style={{
+                    position: "absolute",
+                    top: 14,
+                    left: 16,
+                    height: 36,
+                    width: "auto",
+                    objectFit: "contain",
+                    zIndex: 2,
+                  }}
+                />
+
                 <div
                   style={{
                     display: "flex",
