@@ -1094,6 +1094,7 @@ export default function RegisterPage() {
                   }}
                 />
 
+                {/* Baris atas: logo kiri, ID kanan (teks PADEL KECIL dihilangkan agar tidak timpang dengan logo) */}
                 <div
                   style={{
                     display: "flex",
@@ -1102,18 +1103,10 @@ export default function RegisterPage() {
                     marginBottom: 8,
                     position: "relative",
                     zIndex: 1,
+                    minHeight: 36,
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 12,
-                      letterSpacing: 2,
-                      textTransform: "uppercase",
-                      opacity: 0.9,
-                    }}
-                  >
-                    PADEL KECIL
-                  </div>
+                  <div style={{ width: "auto", minWidth: 0 }} />
                   <div style={{ fontSize: 10, opacity: 0.8 }}>
                     ID: {player.id}
                   </div>
