@@ -1047,24 +1047,6 @@ export default function RegisterPage() {
                     opacity: 0.65,
                   }}
                 />
-                {/* Garis lengkung tipis yang memeluk logo */}
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 6,
-                    top: 50,
-                    width: 112,
-                    height: 52,
-                    borderRadius: 999,
-                    border: "1px solid rgba(79,209,197,0.4)",
-                    borderTopColor: "transparent",
-                    borderRightColor: "transparent",
-                    background: "conic-gradient(from 200deg, rgba(79,209,197,0.3), transparent 55%)",
-                    boxShadow: "0 0 24px rgba(79,209,197,0.45)",
-                    transform: "rotate(-10deg)",
-                    pointerEvents: "none",
-                  }}
-                />
                 <div
                   style={{
                     position: "absolute",
@@ -1096,7 +1078,7 @@ export default function RegisterPage() {
                   }}
                 />
 
-                {/* Pola titik halus kanan (tekstur padel) — referensi */}
+                {/* Pola titik halus kanan (tekstur padel) */}
                 <div
                   style={{
                     position: "absolute",
@@ -1110,6 +1092,38 @@ export default function RegisterPage() {
                     zIndex: 0,
                   }}
                 />
+
+                {/* Siluet raket kanan — setengah hilang (gradient mask) */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "55%",
+                    height: "85%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    pointerEvents: "none",
+                    zIndex: 0,
+                  }}
+                >
+                  <img
+                    src="/logoutama.png"
+                    alt=""
+                    style={{
+                      height: "100%",
+                      width: "auto",
+                      maxWidth: "100%",
+                      objectFit: "contain",
+                      objectPosition: "right center",
+                      opacity: 0.22,
+                      maskImage: "linear-gradient(to right, transparent 0%, black 45%)",
+                      WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 45%)",
+                    }}
+                  />
+                </div>
 
                 {/* Top row: logo + teks Padel Kecil (teal) | MEMBER SINCE 2026 */}
                 <div
