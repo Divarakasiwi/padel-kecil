@@ -140,13 +140,11 @@ export default function CourtCard({
   allOccupiedPlayerIds = null,
   getAssignedColor = null,
 }) {
-  const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [activePlayer, setActivePlayer] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [scanErrorMessage, setScanErrorMessage] = useState(null);
 
-  const slotTargetRef = useRef(null);
   const qrRef = useRef(null);
   const scanTargetRef = useRef(null);
   const activePlayerIdsRef = useRef(new Set());
@@ -177,11 +175,6 @@ export default function CourtCard({
     scanTargetRef.current = { teamKey, slotIndex };
     setScanErrorMessage(null);
     setShowScanner(true);
-  };
-
-  const openPlayerPicker = (teamKey, slotIndex) => {
-    slotTargetRef.current = { teamKey, slotIndex };
-    setShowPlayerPicker(true);
   };
 
   useEffect(() => {
@@ -325,10 +318,8 @@ export default function CourtCard({
       qrRef.current = null;
     }
     scanTargetRef.current = null;
-    slotTargetRef.current = null;
     setActivePlayer(null);
     setShowScanner(false);
-    setShowPlayerPicker(false);
     setCourt((prev) => ({ ...prev, finished: true }));
 
     if (typeof window !== "undefined") {
@@ -350,11 +341,9 @@ export default function CourtCard({
 
   const resetCourt = () => {
     activePlayerIdsRef.current.clear();
-    slotTargetRef.current = null;
     scanTargetRef.current = null;
     setActivePlayer(null);
     setShowScanner(false);
-    setShowPlayerPicker(false);
     setCourt({ ...(initialCourt || initialCourtState) });
   };
 
@@ -600,7 +589,6 @@ export default function CourtCard({
               setShowScanner(false);
               setScanErrorMessage(null);
               scanTargetRef.current = null;
-              slotTargetRef.current = null;
             }}
             style={{ marginTop: 16, padding: "12px 24px", minHeight: 48, borderRadius: 12, border: "1px solid #444", background: "#222", color: "#ccc", cursor: "pointer", fontSize: 15 }}
           >
@@ -645,41 +633,6 @@ export default function CourtCard({
               <button onClick={() => setShowFinishConfirm(false)} style={{ flex: 1, padding: "8px 0", borderRadius: 10, border: "1px solid #2D3748", background: "#1A202C", color: "#CBD5F5", fontSize: 12, cursor: "pointer" }}>Batal</button>
               <button onClick={async () => { setShowFinishConfirm(false); await performFinishMatch(); }} style={{ flex: 1, padding: "8px 0", borderRadius: 10, border: "1px solid #4FD1C5", background: "#4FD1C5", color: "#000", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Ya, simpan</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showPlayerPicker && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-          <div style={{ background: "#121212", padding: 24, borderRadius: 18, minWidth: 300, boxShadow: "0 0 40px rgba(79,209,197,0.6)" }}>
-            <div style={{ marginBottom: 12, fontWeight: 600 }}>Pilih Pemain</div>
-            {(allPlayers || []).filter((p) => p.name && String(p.name).trim() !== "").map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  const target = slotTargetRef.current;
-                  if (!target) return;
-                  const assigned = getAssignedColor?.();
-                  if (!assigned) {
-                    alert("Semua 50 warna sudah dipakai. Keluarkan pemain atau reset court untuk membebaskan warna.");
-                    return;
-                  }
-                  setCourt((prev) => ({
-                    ...prev,
-                    [target.teamKey]: [...prev[target.teamKey], { id: p.id, name: p.name, photoUrl: p.photoUrl || "", photoThumbnail: p.photoThumbnail || "", isVIP: p.isVIP || false, badge: p.badge || null, colorIndex: assigned.colorIndex }],
-                  }));
-                  activePlayerIdsRef.current.add(p.id);
-                  setShowPlayerPicker(false);
-                  slotTargetRef.current = null;
-                }}
-                style={{ width: "100%", padding: 10, marginBottom: 8, borderRadius: 10, background: "#0B1F1E", color: "#4FD1C5", border: "1px solid #4FD1C5", cursor: "pointer" }}
-              >
-                {p.name}
-              </button>
-            ))}
-            <button onClick={() => { setShowPlayerPicker(false); slotTargetRef.current = null; }} style={{ marginTop: 12, width: "100%", padding: 10, borderRadius: 10, background: "#1A0F0F", color: "#FF8A8A", border: "1px solid #553333", cursor: "pointer" }}>
-              Batal
-            </button>
           </div>
         </div>
       )}

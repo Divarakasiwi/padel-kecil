@@ -17,7 +17,6 @@ import {
 
 import Header from "./components/dashboard/Header";
 import StatusIndicator from "./components/dashboard/StatusIndicator";
-import BadgeManagerModal from "./components/dashboard/BadgeManagerModal";
 import HistoryModal from "./components/dashboard/HistoryModal";
 import ClaimHistoryModal from "./components/dashboard/ClaimHistoryModal";
 import CourtCard from "./components/dashboard/CourtCard";
@@ -59,7 +58,6 @@ export function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const courtRefs = useRef({});
   const [allPlayers, setAllPlayers] = useState([]);
-  const [showBadgeManager, setShowBadgeManager] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showClaimHistoryModal, setShowClaimHistoryModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -518,24 +516,7 @@ const updateExtraCourtState = (id, updater) => {
       }}
     >
       {/* HEADER */}
-      <Header
-        now={now}
-        mounted={mounted}
-        onOpenBadgeManager={() => setShowBadgeManager(true)}
-      />
-
-      {/* MODAL KELOLA BADGE */}
-      {showBadgeManager && (
-        <BadgeManagerModal
-          allPlayers={allPlayers}
-          onRefresh={() => {
-            getDocs(collection(db, "players")).then((snap) => {
-              setAllPlayers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-            });
-          }}
-          onClose={() => setShowBadgeManager(false)}
-        />
-      )}
+      <Header now={now} mounted={mounted} />
 
       {/* STATUS INDICATOR KECIL DI POJOK */}
       <StatusIndicator
@@ -992,8 +973,9 @@ export default function LandingPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "24px",
-        background:
-          "radial-gradient(circle at top, rgba(79,209,197,0.2), transparent 55%), #050608",
+        // Pakai warna solid yang sama dengan header supaya glow tidak
+        // "bertabrakan" dengan gradient lain di awal konten.
+        background: "#0B0B0B",
       }}
     >
       <div className="landing-choice-grid">

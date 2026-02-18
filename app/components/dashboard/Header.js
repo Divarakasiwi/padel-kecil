@@ -1,6 +1,8 @@
 "use client";
 
-export default function Header({ now, mounted, onOpenBadgeManager }) {
+import Link from "next/link";
+
+export default function Header({ now, mounted }) {
   return (
     <div
       style={{
@@ -13,24 +15,21 @@ export default function Header({ now, mounted, onOpenBadgeManager }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {onOpenBadgeManager && (
-          <button
-            type="button"
-            onClick={onOpenBadgeManager}
-            style={{
-              padding: "8px 14px",
-              borderRadius: "10px",
-              border: "1px solid #D6C7A1",
-              background: "#1A1810",
-              color: "#D6C7A1",
-              fontSize: "13px",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            Kelola Badge
-          </button>
-        )}
+        <Link
+          href="/host/menu"
+          style={{
+            padding: "8px 14px",
+            borderRadius: "10px",
+            border: "1px solid #D6C7A1",
+            background: "#1A1810",
+            color: "#D6C7A1",
+            fontSize: "13px",
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          Menu
+        </Link>
         <div
           style={{
             fontFamily: "'Courier New', monospace",

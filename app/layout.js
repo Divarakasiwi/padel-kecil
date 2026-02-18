@@ -29,11 +29,13 @@ export default function RootLayout({ children }) {
         <header
           style={{
             background: "#0B0B0B",
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "28px 24px 24px",
+            // Tambah ruang bawah supaya glow divider tidak terlihat "kepotong"
+            padding: "28px 24px 34px",
             textAlign: "center",
           }}
         >
@@ -75,10 +77,12 @@ export default function RootLayout({ children }) {
             style={{
               marginTop: "16px",
               width: "100px",
-              height: "2px",
+              height: "3px",
               borderRadius: "999px",
               background: "linear-gradient(90deg, transparent, #4FD1C5, transparent)",
-              boxShadow: "0 0 14px rgba(79,209,197,0.5)",
+              // drop-shadow cenderung lebih "halus" dan tidak terlihat terpotong
+              filter: "drop-shadow(0 0 14px rgba(79,209,197,0.65))",
+              boxShadow: "0 0 18px rgba(79,209,197,0.25)",
             }}
           />
         </header>

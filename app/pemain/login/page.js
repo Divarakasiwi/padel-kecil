@@ -226,8 +226,7 @@ export default function PemainLoginPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "24px",
-        background:
-          "radial-gradient(circle at top, rgba(79,209,197,0.18), transparent 55%), #050608",
+        background: "#0B0B0B",
       }}
     >
       <div style={{ width: "100%", maxWidth: 420 }}>

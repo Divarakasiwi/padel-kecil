@@ -127,8 +127,7 @@ export default function PemainHomePage() {
       style={{
         minHeight: "calc(100vh - 120px)",
         padding: "24px",
-        background:
-          "radial-gradient(circle at top, rgba(79,209,197,0.18), transparent 55%), #050608",
+        background: "#0B0B0B",
         display: "flex",
         justifyContent: "center",
       }}
