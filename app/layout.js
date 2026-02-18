@@ -10,6 +10,10 @@ const inter = Inter({
 export const metadata = {
   title: "PadelKecil",
   description: "Padel community match system",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 /** Viewport untuk tablet/iPad: lebar device, skala tetap + themeColor untuk address bar */
