@@ -952,12 +952,12 @@ export default function RegisterPage() {
                 boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
               }}
             >
-              {/* KARTU DEPAN */}
+              {/* KARTU DEPAN — membership card horizontal, 8px grid, print-safe */}
               <div
                 ref={frontRef}
                 style={{
-                  background: "radial-gradient(ellipse 100% 80% at 0% 0%, rgba(79,209,197,0.22) 0%, transparent 55%), #0B0B0B",
-                  padding: 20,
+                  background: "#0B0B0B",
+                  padding: 16,
                   color: "#E2E8F0",
                   position: "relative",
                   aspectRatio: "1.586",
@@ -969,218 +969,150 @@ export default function RegisterPage() {
                   borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Garis tosca tebal + glow kuat */}
+                {/* Minimal teal neon accents */}
                 <div
                   style={{
                     position: "absolute",
                     left: 0,
                     top: 0,
-                    width: "130%",
-                    height: 5,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.8) 40%, transparent 85%)",
-                    transform: "rotate(-32deg)",
+                    width: "60%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.6) 0%, transparent 100%)",
+                    transform: "rotate(-12deg)",
                     transformOrigin: "left center",
-                    boxShadow: "0 0 24px #4FD1C5, 0 0 48px rgba(79,209,197,0.7), 0 0 72px rgba(79,209,197,0.4)",
+                    boxShadow: "0 0 12px rgba(79,209,197,0.4)",
                   }}
                 />
                 <div
                   style={{
                     position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: "85%",
-                    height: 4,
-                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.6) 70%, transparent 100%)",
-                    transform: "rotate(-20deg)",
-                    transformOrigin: "left center",
-                    marginTop: 28,
-                    boxShadow: "0 0 20px rgba(79,209,197,0.8), 0 0 40px rgba(79,209,197,0.5)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
+                    right: 0,
+                    bottom: 0,
                     width: "50%",
-                    height: 3,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.9) 0%, transparent 100%)",
-                    transform: "rotate(-8deg)",
-                    transformOrigin: "left center",
-                    marginTop: 52,
-                    boxShadow: "0 0 16px rgba(79,209,197,0.6)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: 0,
-                    width: "120%",
-                    height: 5,
-                    background: "linear-gradient(90deg, transparent 25%, rgba(79,209,197,0.6) 55%, #4FD1C5 100%)",
-                    transform: "rotate(146deg)",
+                    height: 2,
+                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.5) 100%)",
+                    transform: "rotate(12deg)",
                     transformOrigin: "right center",
-                    boxShadow: "0 0 24px #4FD1C5, 0 0 48px rgba(79,209,197,0.7), 0 0 72px rgba(79,209,197,0.4)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: 0,
-                    width: "72%",
-                    height: 4,
-                    background: "linear-gradient(90deg, transparent 20%, rgba(79,209,197,0.7) 60%, #4FD1C5 100%)",
-                    transform: "rotate(156deg)",
-                    transformOrigin: "right center",
-                    marginBottom: 22,
-                    boxShadow: "0 0 20px rgba(79,209,197,0.8), 0 0 40px rgba(79,209,197,0.5)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: 0,
-                    width: "38%",
-                    height: 3,
-                    background: "linear-gradient(90deg, transparent 0%, rgba(79,209,197,0.85) 100%)",
-                    transform: "rotate(166deg)",
-                    transformOrigin: "right center",
-                    marginBottom: 44,
-                    boxShadow: "0 0 14px rgba(79,209,197,0.6)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "42%",
-                    width: "50%",
-                    height: 3,
-                    background: "linear-gradient(90deg, transparent, rgba(79,209,197,0.7))",
-                    transform: "rotate(90deg)",
-                    transformOrigin: "right center",
-                    boxShadow: "0 0 20px rgba(79,209,197,0.5)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    bottom: "30%",
-                    width: "42%",
-                    height: 3,
-                    background: "linear-gradient(90deg, rgba(79,209,197,0.6), transparent)",
-                    transform: "rotate(-90deg)",
-                    transformOrigin: "left center",
-                    boxShadow: "0 0 18px rgba(79,209,197,0.45)",
+                    boxShadow: "0 0 10px rgba(79,209,197,0.3)",
                   }}
                 />
 
-                {/* Logo komunitas di pojok kiri atas — proporsional dengan kartu (sama level dengan foto 72px) */}
-                <img
-                  src="/logoutama.png"
-                  alt="Padel Kecil"
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    left: 12,
-                    height: 80,
-                    width: "auto",
-                    objectFit: "contain",
-                    zIndex: 2,
-                  }}
-                />
-
-                {/* Baris atas: logo kiri, ID kanan (teks PADEL KECIL dihilangkan agar tidak timpang dengan logo) */}
+                {/* Top row: logo + "Padel Kecil" (kiri) | Member Since 2026 (kanan) */}
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: 8,
+                    marginBottom: 16,
                     position: "relative",
                     zIndex: 1,
-                    minHeight: 80,
                   }}
                 >
-                  <div style={{ width: "auto", minWidth: 0 }} />
-                  <div style={{ fontSize: 10, opacity: 0.8 }}>
-                    ID: {player.id}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <img
+                      src="/logoutama.png"
+                      alt=""
+                      style={{ height: 40, width: "auto", objectFit: "contain" }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        color: "#E2E8F0",
+                      }}
+                    >
+                      Padel Kecil
+                    </span>
                   </div>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      letterSpacing: "0.04em",
+                      opacity: 0.85,
+                      color: "#E2E8F0",
+                    }}
+                  >
+                    Member Since 2026
+                  </span>
                 </div>
 
+                {/* Main: foto kiri (besar), nama kanan — hierarchy kuat */}
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 16,
+                    flex: 1,
+                    minHeight: 0,
                     position: "relative",
                     zIndex: 1,
                   }}
                 >
-                  {(player.photoCard || player.photoThumbnail || player.photoUrl) ? (
-                    <img
-                      src={player.photoCard || player.photoThumbnail || player.photoUrl}
-                      alt={player.name}
-                      style={{
-                        width: 72,
-                        height: 72,
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        border: "2px solid rgba(255,255,255,0.85)",
-                        boxShadow: "0 0 12px rgba(0,0,0,0.7)",
-                      }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: 72,
-                        height: 72,
-                        borderRadius: "50%",
-                        background: "rgba(255,255,255,0.2)",
-                        border: "2px solid rgba(255,255,255,0.85)",
-                        boxShadow: "0 0 12px rgba(0,0,0,0.7)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 24,
-                        fontWeight: 600,
-                        color: "#E2E8F0",
-                      }}
-                    >
-                      {(player.name || "?").charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <div style={{ flexShrink: 0 }}>
+                    {(player.photoCard || player.photoThumbnail || player.photoUrl) ? (
+                      <img
+                        src={player.photoCard || player.photoThumbnail || player.photoUrl}
+                        alt={player.name}
+                        style={{
+                          width: 88,
+                          height: 88,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          border: "2px solid rgba(255,255,255,0.9)",
+                          boxShadow: "0 0 16px rgba(79,209,197,0.4), 0 0 24px rgba(0,0,0,0.3)",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 88,
+                          height: 88,
+                          borderRadius: "50%",
+                          background: "rgba(255,255,255,0.12)",
+                          border: "2px solid rgba(255,255,255,0.9)",
+                          boxShadow: "0 0 16px rgba(79,209,197,0.35), 0 0 24px rgba(0,0,0,0.3)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 28,
+                          fontWeight: 700,
+                          color: "#E2E8F0",
+                        }}
+                      >
+                        {(player.name || "?").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: 18,
-                        fontWeight: 600,
-                        letterSpacing: 0.5,
+                        fontSize: 20,
+                        fontWeight: 700,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        lineHeight: 1.2,
+                        color: "#FFFFFF",
                       }}
                     >
                       {player.name}
                     </div>
                     {(player.badge === "queen" || player.badge === "toprank" || player.isVIP) && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
                         {player.badge === "queen" && (
                           <span
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 4,
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: 700,
                               letterSpacing: "0.08em",
                               color: "#FFF8DC",
-                              background: "linear-gradient(135deg, rgba(255,215,0,0.35) 0%, rgba(255,215,0,0.15) 100%)",
-                              padding: "4px 10px",
+                              background: "rgba(255,215,0,0.2)",
+                              padding: "4px 8px",
                               borderRadius: 999,
-                              border: "1px solid rgba(255,215,0,0.6)",
-                              boxShadow: "0 0 12px rgba(255,215,0,0.3)",
+                              border: "1px solid rgba(255,215,0,0.5)",
                             }}
                           >
                             👑 QUEEN
@@ -1192,15 +1124,14 @@ export default function RegisterPage() {
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 4,
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: 700,
                               letterSpacing: "0.08em",
                               color: "#4FD1C5",
-                              background: "linear-gradient(135deg, rgba(79,209,197,0.35) 0%, rgba(79,209,197,0.15) 100%)",
-                              padding: "4px 10px",
+                              background: "rgba(79,209,197,0.2)",
+                              padding: "4px 8px",
                               borderRadius: 999,
-                              border: "1px solid rgba(79,209,197,0.6)",
-                              boxShadow: "0 0 12px rgba(79,209,197,0.3)",
+                              border: "1px solid rgba(79,209,197,0.5)",
                             }}
                           >
                             🏆 TOP RANK
@@ -1212,15 +1143,14 @@ export default function RegisterPage() {
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 4,
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: 700,
                               letterSpacing: "0.08em",
                               color: "#FFD700",
-                              background: "linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(255,215,0,0.08) 100%)",
-                              padding: "4px 10px",
+                              background: "rgba(255,215,0,0.15)",
+                              padding: "4px 8px",
                               borderRadius: 999,
-                              border: "1px solid rgba(255,215,0,0.5)",
-                              boxShadow: "0 0 10px rgba(255,215,0,0.25)",
+                              border: "1px solid rgba(255,215,0,0.4)",
                             }}
                           >
                             ⭐ VIP
@@ -1231,17 +1161,19 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Bottom: label PLAYER CARD */}
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     textTransform: "uppercase",
-                    letterSpacing: 1.2,
-                    opacity: 0.8,
+                    letterSpacing: "0.12em",
+                    opacity: 0.7,
                     position: "relative",
                     zIndex: 1,
+                    marginTop: 8,
                   }}
                 >
-                  Player Card
+                  PLAYER CARD
                 </div>
               </div>
 
@@ -1373,26 +1305,36 @@ export default function RegisterPage() {
                   }}
                 />
 
-                <div
-                  style={{
-                    width: "52%",
-                    aspectRatio: "1",
-                    flexShrink: 0,
-                    background: "#000",
-                    borderRadius: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 10,
-                    position: "relative",
-                    zIndex: 1,
-                  }}
-                >
-                  <img
-                    src={qrUrl}
-                    alt="QR Player"
-                    style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                  />
+                <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "0.06em",
+                      opacity: 0.9,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    ID: {player.id}
+                  </div>
+                  <div
+                    style={{
+                      width: "52%",
+                      aspectRatio: "1",
+                      flexShrink: 0,
+                      background: "#000",
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 10,
+                    }}
+                  >
+                    <img
+                      src={qrUrl}
+                      alt="QR Player"
+                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                    />
+                  </div>
                 </div>
                 <div
                   style={{
