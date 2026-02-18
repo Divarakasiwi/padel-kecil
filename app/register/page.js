@@ -1079,15 +1079,15 @@ export default function RegisterPage() {
                   }}
                 />
 
-                {/* Logo komunitas di pojok kiri atas */}
+                {/* Logo komunitas di pojok kiri atas — proporsional dengan kartu (sama level dengan foto 72px) */}
                 <img
                   src="/logoutama.png"
                   alt="Padel Kecil"
                   style={{
                     position: "absolute",
-                    top: 10,
+                    top: 8,
                     left: 12,
-                    height: 56,
+                    height: 80,
                     width: "auto",
                     objectFit: "contain",
                     zIndex: 2,
@@ -1103,7 +1103,7 @@ export default function RegisterPage() {
                     marginBottom: 8,
                     position: "relative",
                     zIndex: 1,
-                    minHeight: 56,
+                    minHeight: 80,
                   }}
                 >
                   <div style={{ width: "auto", minWidth: 0 }} />
