@@ -84,6 +84,7 @@ export async function POST(request) {
     });
 
     const playerId = docRef.id;
+    const createdAt = new Date().toISOString();
     return NextResponse.json({
       success: true,
       playerId,
@@ -95,6 +96,7 @@ export async function POST(request) {
         photoCard: finalCard,
         badge: null,
         isVIP: false,
+        createdAt,
       },
     });
   } catch (e) {

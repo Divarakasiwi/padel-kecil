@@ -573,6 +573,9 @@ export default function RegisterPage() {
   };
 
   const isCardView = !!player;
+  const memberSinceYear = isCardView && player.createdAt
+    ? (player.createdAt.toDate ? player.createdAt.toDate().getFullYear() : new Date(player.createdAt).getFullYear())
+    : new Date().getFullYear();
 
   return (
     <div
@@ -952,11 +955,11 @@ export default function RegisterPage() {
                 boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
               }}
             >
-              {/* KARTU DEPAN — membership card horizontal, 8px grid, print-safe */}
+              {/* KARTU DEPAN — referensi estetik: gradient, teal branding, dot pattern, teal glow */}
               <div
                 ref={frontRef}
                 style={{
-                  background: "#0B0B0B",
+                  background: "linear-gradient(145deg, #0a0f0e 0%, #0B0B0B 40%, #071012 100%)",
                   padding: 16,
                   color: "#E2E8F0",
                   position: "relative",
@@ -1075,8 +1078,40 @@ export default function RegisterPage() {
                     boxShadow: "0 0 10px rgba(79,209,197,0.3)",
                   }}
                 />
+                {/* Garis lengkung glow kanan bawah (referensi) */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: -20,
+                    bottom: -10,
+                    width: "55%",
+                    height: 80,
+                    borderRadius: "50%",
+                    border: "1px solid rgba(79,209,197,0.25)",
+                    borderBottomColor: "transparent",
+                    borderLeftColor: "transparent",
+                    boxShadow: "0 0 32px rgba(79,209,197,0.35), 0 0 56px rgba(79,209,197,0.2)",
+                    transform: "rotate(25deg)",
+                    pointerEvents: "none",
+                  }}
+                />
 
-                {/* Top row: logo saja (nama sudah di dalam logo) | Member Since 2026 (kanan) */}
+                {/* Pola titik halus kanan (tekstur padel) — referensi */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: "50%",
+                    backgroundImage: "radial-gradient(circle at 50% 50%, rgba(79,209,197,0.08) 1px, transparent 1px)",
+                    backgroundSize: "14px 14px",
+                    pointerEvents: "none",
+                    zIndex: 0,
+                  }}
+                />
+
+                {/* Top row: logo + teks Padel Kecil (teal) | MEMBER SINCE 2026 */}
                 <div
                   style={{
                     display: "flex",
@@ -1087,22 +1122,33 @@ export default function RegisterPage() {
                     zIndex: 1,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <img
                       src="/logoutama.png"
-                      alt="Padel Kecil"
-                      style={{ height: 56, width: "auto", objectFit: "contain" }}
+                      alt=""
+                      style={{ height: 52, width: "auto", objectFit: "contain" }}
                     />
+                    <span
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        color: "#4FD1C5",
+                      }}
+                    >
+                      Padel Kecil
+                    </span>
                   </div>
                   <span
                     style={{
                       fontSize: 9,
-                      letterSpacing: "0.04em",
-                      opacity: 0.85,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      opacity: 0.9,
                       color: "#E2E8F0",
                     }}
                   >
-                    Member Since 2026
+                    Member Since {memberSinceYear}
                   </span>
                 </div>
 
@@ -1130,8 +1176,8 @@ export default function RegisterPage() {
                           height: 88,
                           borderRadius: "50%",
                           objectFit: "cover",
-                          border: "2px solid rgba(255,255,255,0.9)",
-                          boxShadow: "0 0 16px rgba(79,209,197,0.4), 0 0 24px rgba(0,0,0,0.3)",
+                          border: "2px solid rgba(79,209,197,0.85)",
+                          boxShadow: "0 0 20px rgba(79,209,197,0.5), 0 0 36px rgba(79,209,197,0.25), 0 0 48px rgba(0,0,0,0.2)",
                         }}
                       />
                     ) : (
@@ -1141,8 +1187,8 @@ export default function RegisterPage() {
                           height: 88,
                           borderRadius: "50%",
                           background: "rgba(255,255,255,0.12)",
-                          border: "2px solid rgba(255,255,255,0.9)",
-                          boxShadow: "0 0 16px rgba(79,209,197,0.35), 0 0 24px rgba(0,0,0,0.3)",
+                          border: "2px solid rgba(79,209,197,0.85)",
+                          boxShadow: "0 0 20px rgba(79,209,197,0.45), 0 0 36px rgba(79,209,197,0.22), 0 0 48px rgba(0,0,0,0.2)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -1232,16 +1278,17 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Bottom: label PLAYER CARD */}
+                {/* Bottom: label PLAYER CARD — selaras dengan Member Since */}
                 <div
                   style={{
                     fontSize: 9,
                     textTransform: "uppercase",
-                    letterSpacing: "0.12em",
-                    opacity: 0.7,
+                    letterSpacing: "0.08em",
+                    opacity: 0.9,
                     position: "relative",
                     zIndex: 1,
                     marginTop: "auto",
+                    color: "#E2E8F0",
                   }}
                 >
                   PLAYER CARD
