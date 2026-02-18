@@ -972,23 +972,6 @@ export default function RegisterPage() {
                   borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Lapisan gradient lembut di kiri atas (diperkecil supaya tidak mengganggu konten) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    left: -32,
-                    top: -56,
-                    width: 190,
-                    height: 190,
-                    borderRadius: 999,
-                    background:
-                      "radial-gradient(circle at 0% 0%, rgba(79,209,197,0.28) 0%, rgba(79,209,197,0.14) 32%, transparent 68%)",
-                    boxShadow:
-                      "0 0 32px rgba(79,209,197,0.45), 0 0 68px rgba(79,209,197,0.28), 0 0 96px rgba(79,209,197,0.16)",
-                    pointerEvents: "none",
-                  }}
-                />
-
                 {/* Minimal teal neon accents — kiri atas + kanan bawah */}
                 <div
                   style={{
@@ -1091,7 +1074,7 @@ export default function RegisterPage() {
                     <img
                       src="/logoutama.png"
                       alt="Padel Kecil"
-                      style={{ height: 52, width: "auto", objectFit: "contain" }}
+                      style={{ height: 64, width: "auto", objectFit: "contain" }}
                     />
                   </div>
                   <span
