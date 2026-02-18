@@ -969,7 +969,24 @@ export default function RegisterPage() {
                   borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Minimal teal neon accents */}
+                {/* Lapisan gradient lembut di kiri atas */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: -40,
+                    top: -40,
+                    width: 220,
+                    height: 220,
+                    borderRadius: 999,
+                    background:
+                      "radial-gradient(circle at 0% 0%, rgba(79,209,197,0.35) 0%, rgba(79,209,197,0.18) 34%, transparent 70%)",
+                    boxShadow:
+                      "0 0 40px rgba(79,209,197,0.55), 0 0 80px rgba(79,209,197,0.35), 0 0 120px rgba(79,209,197,0.18)",
+                    pointerEvents: "none",
+                  }}
+                />
+
+                {/* Minimal teal neon accents — kiri atas + kanan bawah */}
                 <div
                   style={{
                     position: "absolute",
@@ -981,6 +998,68 @@ export default function RegisterPage() {
                     transform: "rotate(-12deg)",
                     transformOrigin: "left center",
                     boxShadow: "0 0 12px rgba(79,209,197,0.4)",
+                  }}
+                />
+                {/* Garis teal tambahan kiri atas dengan glow estetik */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "45%",
+                    height: 3,
+                    background: "linear-gradient(90deg, #4FD1C5 0%, rgba(79,209,197,0.5) 50%, transparent 100%)",
+                    transform: "rotate(-28deg)",
+                    transformOrigin: "left center",
+                    marginTop: 16,
+                    boxShadow: "0 0 20px rgba(79,209,197,0.6), 0 0 40px rgba(79,209,197,0.35), 0 0 60px rgba(79,209,197,0.2)",
+                  }}
+                />
+                {/* Beberapa garis tipis tambahan untuk komposisi estetik */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "-8%",
+                    top: 32,
+                    width: "55%",
+                    height: 1,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.4) 0%, transparent 100%)",
+                    transform: "rotate(-6deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 10px rgba(79,209,197,0.35)",
+                    opacity: 0.9,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "-4%",
+                    top: 52,
+                    width: "40%",
+                    height: 2,
+                    background: "linear-gradient(90deg, rgba(79,209,197,0.65) 0%, transparent 90%)",
+                    transform: "rotate(-18deg)",
+                    transformOrigin: "left center",
+                    boxShadow: "0 0 18px rgba(79,209,197,0.55)",
+                    opacity: 0.85,
+                  }}
+                />
+                {/* Garis lengkung tipis yang memeluk logo */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: 54,
+                    width: 120,
+                    height: 60,
+                    borderRadius: 999,
+                    border: "1px solid rgba(79,209,197,0.4)",
+                    borderTopColor: "transparent",
+                    borderRightColor: "transparent",
+                    background: "conic-gradient(from 200deg, rgba(79,209,197,0.3), transparent 55%)",
+                    boxShadow: "0 0 24px rgba(79,209,197,0.45)",
+                    transform: "rotate(-10deg)",
+                    pointerEvents: "none",
                   }}
                 />
                 <div
@@ -997,7 +1076,7 @@ export default function RegisterPage() {
                   }}
                 />
 
-                {/* Top row: logo + "Padel Kecil" (kiri) | Member Since 2026 (kanan) */}
+                {/* Top row: logo saja (nama sudah di dalam logo) | Member Since 2026 (kanan) */}
                 <div
                   style={{
                     display: "flex",
@@ -1008,22 +1087,12 @@ export default function RegisterPage() {
                     zIndex: 1,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
                     <img
                       src="/logoutama.png"
-                      alt=""
+                      alt="Padel Kecil"
                       style={{ height: 40, width: "auto", objectFit: "contain" }}
                     />
-                    <span
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        letterSpacing: "0.06em",
-                        color: "#E2E8F0",
-                      }}
-                    >
-                      Padel Kecil
-                    </span>
                   </div>
                   <span
                     style={{
