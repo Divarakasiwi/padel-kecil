@@ -1085,9 +1085,9 @@ export default function RegisterPage() {
                   alt="Padel Kecil"
                   style={{
                     position: "absolute",
-                    top: 14,
-                    left: 16,
-                    height: 36,
+                    top: 10,
+                    left: 12,
+                    height: 56,
                     width: "auto",
                     objectFit: "contain",
                     zIndex: 2,
@@ -1103,7 +1103,7 @@ export default function RegisterPage() {
                     marginBottom: 8,
                     position: "relative",
                     zIndex: 1,
-                    minHeight: 36,
+                    minHeight: 56,
                   }}
                 >
                   <div style={{ width: "auto", minWidth: 0 }} />
