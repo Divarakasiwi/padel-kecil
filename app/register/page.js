@@ -963,25 +963,25 @@ export default function RegisterPage() {
                   aspectRatio: "1.586",
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-start",
                   overflow: "hidden",
                   borderTopLeftRadius: 24,
                   borderBottomLeftRadius: 24,
                 }}
               >
-                {/* Lapisan gradient lembut di kiri atas */}
+                {/* Lapisan gradient lembut di kiri atas (diperkecil supaya tidak mengganggu konten) */}
                 <div
                   style={{
                     position: "absolute",
-                    left: -40,
-                    top: -40,
-                    width: 220,
-                    height: 220,
+                    left: -32,
+                    top: -56,
+                    width: 190,
+                    height: 190,
                     borderRadius: 999,
                     background:
-                      "radial-gradient(circle at 0% 0%, rgba(79,209,197,0.35) 0%, rgba(79,209,197,0.18) 34%, transparent 70%)",
+                      "radial-gradient(circle at 0% 0%, rgba(79,209,197,0.28) 0%, rgba(79,209,197,0.14) 32%, transparent 68%)",
                     boxShadow:
-                      "0 0 40px rgba(79,209,197,0.55), 0 0 80px rgba(79,209,197,0.35), 0 0 120px rgba(79,209,197,0.18)",
+                      "0 0 32px rgba(79,209,197,0.45), 0 0 68px rgba(79,209,197,0.28), 0 0 96px rgba(79,209,197,0.16)",
                     pointerEvents: "none",
                   }}
                 />
@@ -1027,7 +1027,7 @@ export default function RegisterPage() {
                     transform: "rotate(-6deg)",
                     transformOrigin: "left center",
                     boxShadow: "0 0 10px rgba(79,209,197,0.35)",
-                    opacity: 0.9,
+                    opacity: 0.7,
                   }}
                 />
                 <div
@@ -1041,17 +1041,17 @@ export default function RegisterPage() {
                     transform: "rotate(-18deg)",
                     transformOrigin: "left center",
                     boxShadow: "0 0 18px rgba(79,209,197,0.55)",
-                    opacity: 0.85,
+                    opacity: 0.65,
                   }}
                 />
                 {/* Garis lengkung tipis yang memeluk logo */}
                 <div
                   style={{
                     position: "absolute",
-                    left: 10,
-                    top: 54,
-                    width: 120,
-                    height: 60,
+                    left: 6,
+                    top: 50,
+                    width: 112,
+                    height: 52,
                     borderRadius: 999,
                     border: "1px solid rgba(79,209,197,0.4)",
                     borderTopColor: "transparent",
@@ -1082,7 +1082,7 @@ export default function RegisterPage() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: 16,
+                    marginBottom: 20,
                     position: "relative",
                     zIndex: 1,
                   }}
@@ -1091,7 +1091,7 @@ export default function RegisterPage() {
                     <img
                       src="/logoutama.png"
                       alt="Padel Kecil"
-                      style={{ height: 40, width: "auto", objectFit: "contain" }}
+                      style={{ height: 56, width: "auto", objectFit: "contain" }}
                     />
                   </div>
                   <span
@@ -1112,10 +1112,12 @@ export default function RegisterPage() {
                     display: "flex",
                     alignItems: "center",
                     gap: 16,
-                    flex: 1,
+                    flex: 0,
                     minHeight: 0,
                     position: "relative",
                     zIndex: 1,
+                    marginTop: 24,
+                    marginBottom: 32,
                   }}
                 >
                   <div style={{ flexShrink: 0 }}>
@@ -1239,7 +1241,7 @@ export default function RegisterPage() {
                     opacity: 0.7,
                     position: "relative",
                     zIndex: 1,
-                    marginTop: 8,
+                    marginTop: "auto",
                   }}
                 >
                   PLAYER CARD
