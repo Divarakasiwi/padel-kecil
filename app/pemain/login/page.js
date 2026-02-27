@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
 import { doc, getDoc } from "firebase/firestore";
@@ -36,7 +36,7 @@ export default function PemainLoginPage() {
   const [message, setMessage] = useState("");
   const fileInputRef = useRef(null);
 
-  const handleDecodedText = async (decodedText, { fromFile = false } = {}) => {
+  const handleDecodedText = useCallback(async (decodedText, { fromFile = false } = {}) => {
     const playerId = parsePlayerIdFromQr(decodedText);
     if (!playerId) {
       setMessage("QR tidak valid. Coba scan ulang.");
@@ -76,7 +76,7 @@ export default function PemainLoginPage() {
       setStatus("error");
       processingRef.current = false;
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -189,7 +189,7 @@ export default function PemainLoginPage() {
       cancelled = true;
       stopScanner().catch(() => {});
     };
-  }, [status]);
+  }, [status, handleDecodedText]);
 
   const handleFilePick = () => {
     if (!fileInputRef.current) return;

@@ -55,7 +55,7 @@ export function Dashboard() {
 
   const [court1, setCourt1] = useState(initialCourtState);
   const [extraCourts, setExtraCourts] = useState([]); // COURT 2–8
-  const [mounted, setMounted] = useState(false);
+  const mounted = true;
   const courtRefs = useRef({});
   const [allPlayers, setAllPlayers] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -138,8 +138,6 @@ export function Dashboard() {
   };
 
 useEffect(() => {
-  setMounted(true);
-
   const t = setInterval(() => setNow(new Date()), 1000);
   return () => clearInterval(t);
 }, []);
@@ -368,7 +366,7 @@ const updateExtraCourtState = (id, updater) => {
       .filter((p) => scannedTodayIds.has(p.id))
       .map((p) => ({ id: p.id, name: p.name || p.id, played: countById[p.id] || 0 }))
       .sort((a, b) => a.played - b.played);
-  }, [allPlayers, pendingMatchesCount]);
+  }, [allPlayers]);
 
   // Pairing Insight: pasangan yang main bersama hari ini (dari semua court), digabung
   const pairings = useMemo(() => {
@@ -401,7 +399,7 @@ const updateExtraCourtState = (id, updater) => {
         return { pair: names.join(" + "), times };
       })
       .sort((a, b) => b.times - a.times);
-  }, [allPlayers, pendingMatchesCount]);
+  }, [allPlayers]);
 
   // Top rank per orang (hari ini) berdasarkan jumlah kemenangan
   const topWinnersToday = useMemo(() => {
@@ -429,7 +427,7 @@ const updateExtraCourtState = (id, updater) => {
       .map(([id, wins]) => ({ id, name: nameById[id] || id, wins }))
       .sort((a, b) => b.wins - a.wins)
       .slice(0, 10);
-  }, [allPlayers, pendingMatchesCount]);
+  }, [allPlayers]);
 
   // Sinkronisasi badge "Top Rank" (non-turnamen): hanya #1 hari ini yang dapat
   const lastSyncedTopRankId = useRef(null);
@@ -484,7 +482,7 @@ const updateExtraCourtState = (id, updater) => {
       }))
       .sort((a, b) => b.wins - a.wins)
       .slice(0, 10);
-  }, [allPlayers, pendingMatchesCount]);
+  }, [allPlayers]);
 
   if (!hostChecked) {
     return (

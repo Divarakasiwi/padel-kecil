@@ -156,7 +156,6 @@ export default function PemainHomePage() {
               }}
             >
               {profilePhoto ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={profilePhoto}
                   alt={playerName}

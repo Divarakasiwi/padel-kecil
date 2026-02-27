@@ -148,14 +148,16 @@ export default function CourtCard({
   const qrRef = useRef(null);
   const scanTargetRef = useRef(null);
   const activePlayerIdsRef = useRef(new Set());
-  const qrContainerIdRef = useRef(`qr-${title.replace(/\s/g, "-")}-${Date.now()}`).current;
+  const qrContainerIdRef = useRef(`qr-${title.replace(/\s/g, "-").toLowerCase()}`).current;
   const setCourtRef = useRef(setCourt);
   const reportStatusRef = useRef(reportStatus);
+  const getAssignedColorRef = useRef(getAssignedColor);
   const allOccupiedRef = useRef(
     allOccupiedPlayerIds instanceof Set ? allOccupiedPlayerIds : new Set(allOccupiedPlayerIds || [])
   );
   setCourtRef.current = setCourt;
   reportStatusRef.current = reportStatus;
+  getAssignedColorRef.current = getAssignedColor;
   allOccupiedRef.current =
     allOccupiedPlayerIds instanceof Set ? allOccupiedPlayerIds : new Set(allOccupiedPlayerIds || []);
 
@@ -224,7 +226,7 @@ export default function CourtCard({
               return;
             }
 
-            const assigned = getAssignedColor?.();
+            const assigned = getAssignedColorRef.current?.();
             if (!assigned) {
               setScanErrorMessage("Semua 50 warna sudah dipakai. Keluarkan pemain atau reset court untuk membebaskan warna.");
               return;
@@ -283,7 +285,7 @@ export default function CourtCard({
         if (clearP && typeof clearP.catch === "function") clearP.catch(() => {});
       } catch (_) {}
     };
-  }, [showScanner]);
+  }, [showScanner, qrContainerIdRef]);
 
   const score1 = court.score1 ?? 0;
   const score2 = court.score2 ?? 0;

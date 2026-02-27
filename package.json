@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "lint": "eslint . --ext .js,.jsx",
+    "lint:stage1": "eslint . --ext .js,.jsx --config eslint.stage1.config.mjs",
+    "lint:stage2": "eslint . --ext .js,.jsx --config eslint.stage2.config.mjs",
     "build": "next build",
     "start": "next start"
   },
@@ -16,5 +19,10 @@
     "qrcode.react": "^4.2.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.4",
+    "eslint": "^9.39.3",
+    "eslint-config-next": "^16.1.6"
   }
 }

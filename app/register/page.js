@@ -51,7 +51,9 @@ function normalizeName(value) {
 async function compressImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) {
@@ -88,8 +90,11 @@ async function compressImage(file, maxSize = 1024) {
         0.82
       );
     };
-    img.onerror = () => resolve(file);
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+    img.src = objectUrl;
   });
 }
 
@@ -97,7 +102,9 @@ async function compressImage(file, maxSize = 1024) {
 async function createPhotoDataUrl(file, size, quality = 0.6) {
   return new Promise((resolve) => {
     const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) {
@@ -119,8 +126,11 @@ async function createPhotoDataUrl(file, size, quality = 0.6) {
       const dataUrl = canvas.toDataURL("image/jpeg", quality);
       resolve(dataUrl || "");
     };
-    img.onerror = () => resolve("");
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve("");
+    };
+    img.src = objectUrl;
   });
 }
 
@@ -128,7 +138,9 @@ async function createPhotoDataUrl(file, size, quality = 0.6) {
 async function cropImageByPosition(file, posPercent, size = 400) {
   return new Promise((resolve) => {
     const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       const canvas = document.createElement("canvas");
       canvas.width = size;
       canvas.height = size;
@@ -165,8 +177,11 @@ async function cropImageByPosition(file, posPercent, size = 400) {
         0.85
       );
     };
-    img.onerror = () => resolve(file);
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+    img.src = objectUrl;
   });
 }
 
@@ -181,6 +196,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
+  const photoPreviewUrlRef = useRef("");
   const [photoPreviewPosition, setPhotoPreviewPosition] = useState({ x: 50, y: 50 });
   const photoDragRef = useRef({ isDragging: false, startX: 0, startY: 0, startPos: { x: 50, y: 50 } });
   const [showCamera, setShowCamera] = useState(false);
@@ -198,6 +214,10 @@ export default function RegisterPage() {
       if (cameraStreamRef.current) {
         cameraStreamRef.current.getTracks().forEach((t) => t.stop());
         cameraStreamRef.current = null;
+      }
+      if (photoPreviewUrlRef.current) {
+        URL.revokeObjectURL(photoPreviewUrlRef.current);
+        photoPreviewUrlRef.current = "";
       }
     };
   }, []);
@@ -413,9 +433,14 @@ export default function RegisterPage() {
       (blob) => {
         if (!blob) return;
         const file = new File([blob], "camera.jpg", { type: "image/jpeg" });
+        if (photoPreviewUrlRef.current) {
+          URL.revokeObjectURL(photoPreviewUrlRef.current);
+        }
+        const previewUrl = URL.createObjectURL(file);
+        photoPreviewUrlRef.current = previewUrl;
         setPhotoFile(file);
         setPhotoPreviewPosition({ x: 50, y: 50 });
-        setPhotoPreview(URL.createObjectURL(file));
+        setPhotoPreview(previewUrl);
         setError("");
         stopCamera();
       },
@@ -435,11 +460,19 @@ export default function RegisterPage() {
     setPhotoFile(file);
     setPhotoPreviewPosition({ x: 50, y: 50 });
     const url = URL.createObjectURL(file);
+    if (photoPreviewUrlRef.current) {
+      URL.revokeObjectURL(photoPreviewUrlRef.current);
+    }
+    photoPreviewUrlRef.current = url;
     setPhotoPreview(url);
     e.target.value = "";
   };
 
   const handleDaftarLagi = () => {
+    if (photoPreviewUrlRef.current) {
+      URL.revokeObjectURL(photoPreviewUrlRef.current);
+      photoPreviewUrlRef.current = "";
+    }
     setPlayer(null);
     setQrUrl("");
     setCode("");
