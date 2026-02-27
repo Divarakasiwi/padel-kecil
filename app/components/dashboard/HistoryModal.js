@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebase";
@@ -94,6 +94,11 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
   const [totalMatches, setTotalMatches] = useState(0);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const allPlayersRef = useRef(allPlayers);
+
+  useEffect(() => {
+    allPlayersRef.current = allPlayers;
+  }, [allPlayers]);
 
   useEffect(() => {
     if (!open) return;
@@ -128,7 +133,7 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
       (snap) => {
         if (snap.metadata?.fromCache) return;
         clearTimeout(fallbackTimer);
-        const { list, totalMatches: total } = processSnapshot(snap, allPlayers);
+        const { list, totalMatches: total } = processSnapshot(snap, allPlayersRef.current);
         setTopTeams(list);
         setTotalMatches(total);
         setError(null);
@@ -147,7 +152,7 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
       clearTimeout(fallbackTimer);
       unsubscribe();
     };
-  }, [open, period, allPlayers, retryCount]);
+  }, [open, period, retryCount]);
 
   if (!open) return null;
 
@@ -297,7 +302,7 @@ export default function HistoryModal({ open, onClose, allPlayers }) {
           )}
           {!loading && !error && topTeams.length === 0 && (
             <div style={{ color: "#9A9A9A", textAlign: "center", padding: "24px" }}>
-              Belum ada data pertandingan untuk periode ini.
+              Belum ada pertandingan untuk periode ini.
             </div>
           )}
           {!loading && !error && topTeams.length > 0 && (
